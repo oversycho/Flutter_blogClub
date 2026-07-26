@@ -7,7 +7,8 @@ import 'package:gbc/ui/home/bloc/home_bloc.dart';
 
 import 'package:gbc/data/repo/categoires_repository.dart';
 import 'package:gbc/data/repo/post_repository.dart';
-import 'package:gbc/ui/widgets/image.dart';
+import 'package:gbc/ui/posts/post.dart';
+
 import 'package:gbc/ui/widgets/slider.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -46,6 +47,7 @@ class HomeScreen extends StatelessWidget {
                         return _HorizontalPostList(
                           onTap: () {},
                           post: state.posts,
+                          title: 'Latest Feeds',
                         );
                       default:
                         return const SizedBox.shrink();
@@ -80,65 +82,44 @@ class HomeScreen extends StatelessWidget {
 class _HorizontalPostList extends StatelessWidget {
   final GestureTapCallback onTap;
   final List<PostEntity> post;
+  final String title;
 
   const _HorizontalPostList({
-    super.key,
-
     required this.onTap,
     required this.post,
+    required this.title,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 550,
-
-      child: ListView.builder(
-        physics: BouncingScrollPhysics(),
-        itemCount: post.length,
-        scrollDirection: Axis.horizontal,
-        itemBuilder: (context, index) {
-          final posts = post[index];
-          return SizedBox(
-            width: 320,
-            child: Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 320,
-                    height: 320,
-                    child: ImageLoadingService(
-                      imageUrl: posts.coverImageUrl,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 12, right: 12),
-                    child: Text(
-                      posts.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 12, right: 12),
-                    child: Text(
-                      posts.authorUsername,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.only(left: 12, right: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(title),
+              TextButton(onPressed: onTap, child: Text('See All !')),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 420,
+          child: ListView.builder(
+            physics: BouncingScrollPhysics(),
+            itemCount: post.length,
+            scrollDirection: Axis.horizontal,
+            itemBuilder: (context, index) {
+              final posts = post[index];
+              return postItems(
+                posts: posts,
+                borderRadius: BorderRadius.circular(24),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
