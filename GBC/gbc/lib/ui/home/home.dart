@@ -1,12 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gbc/data/categories.dart';
 import 'package:gbc/data/post.dart';
 import 'package:gbc/data/repo/banner_repository.dart';
+import 'package:gbc/ui/categories/category.dart';
 import 'package:gbc/ui/home/bloc/home_bloc.dart';
 
 import 'package:gbc/data/repo/categoires_repository.dart';
 import 'package:gbc/data/repo/post_repository.dart';
+import 'package:gbc/ui/home/footer.dart';
 import 'package:gbc/ui/posts/post.dart';
 
 import 'package:gbc/ui/widgets/slider.dart';
@@ -49,6 +52,17 @@ class HomeScreen extends StatelessWidget {
                           post: state.posts,
                           title: 'Latest Feeds',
                         );
+                      case 4:
+                        return _HorizontalCategoryList(
+                          categories: state.categories,
+                          title: 'Categories',
+                          onTap: () {},
+                        );
+                      case 5:
+                        return SizedBox(height: 100);
+
+                      case 6:
+                        return FooterHome();
                       default:
                         return const SizedBox.shrink();
                     }
@@ -75,6 +89,52 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _HorizontalCategoryList extends StatelessWidget {
+  final String title;
+  final GestureTapCallback onTap;
+  final List<CategoriesEntity> categories;
+  const _HorizontalCategoryList({
+    required this.title,
+    required this.onTap,
+    required this.categories,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 12, right: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(title),
+              TextButton(onPressed: onTap, child: Text('See  All !')),
+            ],
+          ),
+        ),
+
+        SizedBox(
+          height: 90,
+
+          child: ListView.builder(
+            physics: BouncingScrollPhysics(),
+            itemCount: categories.length,
+            scrollDirection: Axis.horizontal,
+            itemBuilder: (context, index) {
+              final category = categories[index];
+              return categoryItem(
+                categoriess: category,
+                borderRadius: BorderRadius.circular(12),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
