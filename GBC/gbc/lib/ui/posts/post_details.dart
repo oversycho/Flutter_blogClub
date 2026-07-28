@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gbc/data/post.dart';
 import 'package:gbc/theme.dart';
+import 'package:gbc/ui/posts/comment/comment_list.dart';
 import 'package:gbc/ui/widgets/image.dart';
 
 class PostDetailsScreen extends StatelessWidget {
@@ -138,6 +139,7 @@ class PostDetailsScreen extends StatelessWidget {
               ),
             ),
           ),
+          CommentList(postId: post.id),
         ],
       ),
     );

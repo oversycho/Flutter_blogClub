@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 //import 'package:gbc/common/http_client.dart';
 //import 'package:gbc/data/source/banner_data_source.dart';
 //import 'package:gbc/data/source/categoires_data_source.dart';
@@ -42,6 +43,12 @@ void main() async {
   } catch (e) {
     debugPrint('❌ Failed to fetch posts : $e');
   }
+  final commentDataSource = CommentRemoteDataSource(restClient);
+  try{final comments = await commentDataSource.getComments(postId: );
+    debugPrint('✅ Got ${comments.length} posts');
+    for (final b in comments) {
+      debugPrint('  - ${b.id}: ${b.content} ${b.postId} ');
+    }}catch(e){  debugPrint('❌ Failed to fetch comments : $e');}
   // --- END DEBUG CHECK ---
  */
   runApp(const MyApp());

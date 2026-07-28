@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gbc/common/app_exception.dart';
 import 'package:gbc/data/categories.dart';
 import 'package:gbc/data/post.dart';
 import 'package:gbc/data/repo/banner_repository.dart';
@@ -71,16 +72,11 @@ class HomeScreen extends StatelessWidget {
               } else if (state is HomeLoading) {
                 return Center(child: CupertinoActivityIndicator());
               } else if (state is HomeError) {
-                return Column(
-                  children: [
-                    Text(state.exception.message),
-                    ElevatedButton(
-                      onPressed: () {
-                        BlocProvider.of<HomeBloc>(context).add(HomeRefresh());
-                      },
-                      child: Text('Re Try :>'),
-                    ),
-                  ],
+                return appErorrWidget(
+                  exception: state.exception,
+                  onPressed: () {
+                    BlocProvider.of<HomeBloc>(context).add(HomeRefresh());
+                  },
                 );
               } else {
                 throw Exception('state is un supported');
@@ -89,6 +85,26 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class appErorrWidget extends StatelessWidget {
+  final AppException exception;
+  final GestureTapCallback onPressed;
+  const appErorrWidget({
+    super.key,
+    required this.exception,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(exception.message),
+        ElevatedButton(onPressed: onPressed, child: Text('Re Try :>')),
+      ],
     );
   }
 }
