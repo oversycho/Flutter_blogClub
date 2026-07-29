@@ -22,7 +22,6 @@ class _AuthScreenState extends State<AuthScreen> {
           border: OutlineInputBorder(
             borderSide: BorderSide(
               color: const Color.fromARGB(255, 40, 40, 41),
-
               width: 0.5,
             ),
             borderRadius: BorderRadius.circular(15),
@@ -43,116 +42,179 @@ class _AuthScreenState extends State<AuthScreen> {
           ),
         ),
       ),
-      child: Scaffold(
-        body: Padding(
-          padding: const EdgeInsets.only(left: 48, right: 48),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Image.asset('assets/img/GBC_logo.png', width: 130),
-              const SizedBox(height: 12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+        color: isLogin
+            ? DarkThemeColors.backgroundColor
+            : const Color(0xff1A1A1D),
+        child: Stack(
+          children: [
+            // Background blob 1
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeInOut,
+              top: isLogin ? -60 : -100,
+              left: isLogin ? -80 : 40,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 600),
+                width: 220,
+                height: 220,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color:
+                      (isLogin
+                              ? DarkThemeColors.primaryColor
+                              : const Color(0xff5865F2))
+                          .withOpacity(0.18),
+                ),
+              ),
+            ),
+            // Background blob 2
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeInOut,
+              bottom: isLogin ? -90 : -50,
+              right: isLogin ? -60 : -100,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 600),
+                width: 260,
+                height: 260,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color:
+                      (isLogin
+                              ? const Color.fromARGB(255, 10, 93, 218)
+                              : DarkThemeColors.primaryColor)
+                          .withOpacity(0.15),
+                ),
+              ),
+            ),
 
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 250),
-                child: Text(
-                  isLogin ? 'Welcome' : 'Register',
-                  style: themeData.textTheme.headlineMedium,
-                  key: ValueKey(isLogin),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                isLogin
-                    ? 'Please Log in To Your Account'
-                    : 'create your account',
-                style: themeData.textTheme.titleMedium,
-              ),
-              const SizedBox(height: 24),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                transitionBuilder: (child, animation) {
-                  return FadeTransition(
-                    opacity: animation,
-                    child: SizeTransition(sizeFactor: animation, child: child),
-                  );
-                },
-                child: isLogin
-                    ? const _LoginFields(key: ValueKey('login'))
-                    : const _SignUpFields(key: ValueKey('signup')),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {},
-                child: Text(
-                  isLogin ? 'Login' : 'Register',
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
-              ),
-              const SizedBox(height: 12),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    isLogin = !isLogin;
-                  });
-                },
-                child: Row(
+            // Actual content
+            Scaffold(
+              backgroundColor: Colors.transparent,
+              body: Padding(
+                padding: const EdgeInsets.only(left: 48, right: 48),
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    Image.asset('assets/img/GBC_logo.png', width: 130),
+                    const SizedBox(height: 12),
+
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      child: Text(
+                        isLogin ? 'Welcome' : 'Register',
+                        style: themeData.textTheme.headlineMedium,
+                        key: ValueKey(isLogin),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     Text(
                       isLogin
-                          ? 'if you Dont Have An Account?'
-                          : 'You Already have Account ',
+                          ? 'Please Log in To Your Account'
+                          : 'create your account',
+                      style: themeData.textTheme.titleMedium,
                     ),
-
-                    SizedBox(width: 8),
-                    Text(
-                      isLogin ? 'Register' : 'Login',
-                      style: TextStyle(color: DarkThemeColors.primaryColor),
+                    const SizedBox(height: 24),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      transitionBuilder: (child, animation) {
+                        return FadeTransition(
+                          opacity: animation,
+                          child: SizeTransition(
+                            sizeFactor: animation,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: isLogin
+                          ? const _LoginFields(key: ValueKey('login'))
+                          : const _SignUpFields(key: ValueKey('signup')),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () {},
+                      child: Text(
+                        isLogin ? 'Login' : 'Register',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          isLogin = !isLogin;
+                        });
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            isLogin
+                                ? 'if you Dont Have An Account?'
+                                : 'You Already have Account ',
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            isLogin ? 'Register' : 'Login',
+                            style: TextStyle(
+                              color: DarkThemeColors.primaryColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      child: isLogin
+                          ? Column(
+                              key: const ValueKey('social-login'),
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Divider(height: 1),
+                                SizedBox(height: 10),
+                                const Text('Also You Can Login with'),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    IconButton(
+                                      onPressed: () {},
+                                      icon: Icon(
+                                        SimpleIcons.google,
+                                        size: 32,
+                                        color: const Color.fromARGB(
+                                          255,
+                                          192,
+                                          14,
+                                          14,
+                                        ),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () {},
+                                      icon: Icon(
+                                        SimpleIcons.discord,
+                                        size: 32,
+                                        color: const Color(0xff5865F2),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            )
+                          : const SizedBox.shrink(
+                              key: ValueKey('social-empty'),
+                            ),
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 12),
-
-              SizedBox(height: 12),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 250),
-                child: isLogin
-                    ? Column(
-                        key: const ValueKey('social-login'),
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Divider(height: 1),
-                          SizedBox(height: 10),
-                          const Text('Also You Can Login with'),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              IconButton(
-                                onPressed: () {},
-                                icon: Icon(
-                                  SimpleIcons.google,
-                                  size: 32,
-                                  color: const Color.fromARGB(255, 192, 14, 14),
-                                ),
-                              ),
-                              IconButton(
-                                onPressed: () {},
-                                icon: Icon(
-                                  SimpleIcons.discord,
-                                  size: 32,
-                                  color: const Color(0xff5865F2),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      )
-                    : const SizedBox.shrink(key: ValueKey('social-empty')),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
