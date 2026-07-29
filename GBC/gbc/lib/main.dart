@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 //import 'package:gbc/data/source/categoires_data_source.dart';
 //import 'package:gbc/data/source/post_data_source.dart';
 import 'package:gbc/theme.dart';
+import 'package:gbc/ui/auth/auth.dart';
 import 'package:gbc/ui/home/home.dart';
 import 'package:gbc/ui/root.dart';
 
@@ -65,7 +66,7 @@ class MyApp extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode
           .system, // will switch automatically later — swap to a Bloc-driven value once you wire up your theme cubit/bloc
-      home: RootScreen(),
+      home: const AuthScreen(),
     );
   }
 }
