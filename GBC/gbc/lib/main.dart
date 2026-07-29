@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 //import 'package:gbc/data/source/post_data_source.dart';
 import 'package:gbc/theme.dart';
 import 'package:gbc/ui/home/home.dart';
+import 'package:gbc/ui/root.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -64,7 +65,7 @@ class MyApp extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode
           .system, // will switch automatically later — swap to a Bloc-driven value once you wire up your theme cubit/bloc
-      home: HomeScreen(),
+      home: RootScreen(),
     );
   }
 }
