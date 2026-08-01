@@ -35,8 +35,16 @@ class AuthRemoteDataSource
   }
 
   @override
-  Future<AuthInfo> register(String username, String email, String password) {
-    // TODO: implement register
-    throw UnimplementedError();
+  Future<AuthInfo> register(
+    String username,
+    String email,
+    String password,
+  ) async {
+    final response = await httpClient.post(
+      'signup',
+      data: {"username": username, "email": email, "password": password},
+    );
+    validateResponse(response);
+    return login(email, password);
   }
 }

@@ -138,10 +138,15 @@ class _AuthScreenState extends State<AuthScreen> {
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: () {
-                        authRepository.login(
-                          "oversycho41@gmail.com",
-                          "SuperSecret123!",
-                        );
+                        try {
+                          authRepository.register(
+                            "alex1",
+                            "mmdmnm139@gmail.com",
+                            "123sdk34",
+                          );
+                        } catch (e) {
+                          debugPrint(e.toString());
+                        }
                       },
                       child: Text(
                         isLogin ? 'Login' : 'Register',
