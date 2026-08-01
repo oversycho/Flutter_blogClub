@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:gbc/data/repo/auth_repository.dart';
 import 'package:gbc/theme.dart';
 import 'package:simple_icons/simple_icons.dart';
 
@@ -136,7 +137,12 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        authRepository.login(
+                          "oversycho41@gmail.com",
+                          "SuperSecret123!",
+                        );
+                      },
                       child: Text(
                         isLogin ? 'Login' : 'Register',
                         style: TextStyle(fontWeight: FontWeight.w700),
