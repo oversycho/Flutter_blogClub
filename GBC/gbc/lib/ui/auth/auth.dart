@@ -137,16 +137,13 @@ class _AuthScreenState extends State<AuthScreen> {
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(
-                      onPressed: () {
-                        try {
-                          authRepository.register(
-                            "alex1",
-                            "mmdmnm139@gmail.com",
-                            "123sdk34",
-                          );
-                        } catch (e) {
-                          debugPrint(e.toString());
-                        }
+                      onPressed: () async {
+                        /*      await authRepository.login(
+                          "oversycho41@gmail.com",
+
+                          "SuperSecret123!",
+                        ); */
+                        authRepository.refreshToken();
                       },
                       child: Text(
                         isLogin ? 'Login' : 'Register',
