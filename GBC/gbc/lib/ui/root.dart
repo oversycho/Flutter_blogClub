@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:gbc/ui/create/create_post.dart';
 import 'package:gbc/ui/home/home.dart';
 
 const int homeIndex = 0;
@@ -66,11 +67,7 @@ class _RootScreenState extends State<RootScreen> {
           index: selectedScreenIndex,
           children: [
             _navigator(_homeKey, homeIndex, const HomeScreen()),
-            _navigator(
-              _addPostKey,
-              addPostIndex,
-              const Center(child: Text('Add Post screen under development')),
-            ),
+            _navigator(_addPostKey, addPostIndex, const createPostScreen()),
             _navigator(
               _profileKey,
               profileIndex,

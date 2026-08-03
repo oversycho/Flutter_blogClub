@@ -1,7 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gbc/data/repo/auth_repository.dart';
 import 'package:gbc/theme.dart';
+import 'package:gbc/ui/auth/bloc/auth_bloc.dart';
 import 'package:simple_icons/simple_icons.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -13,7 +15,7 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   bool isLogin = true;
-  final TextEditingController usernameController = TextEditingController(
+  /*   final TextEditingController usernameController = TextEditingController(
     text: "Player1",
   );
   final TextEditingController emailController = TextEditingController(
@@ -21,7 +23,10 @@ class _AuthScreenState extends State<AuthScreen> {
   );
   final TextEditingController passwordController = TextEditingController(
     text: "SuperSecret123!",
-  );
+  );  */
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     final ThemeData themeData = Theme.of(context);
@@ -36,6 +41,13 @@ class _AuthScreenState extends State<AuthScreen> {
             ),
             borderRadius: BorderRadius.circular(15),
           ),
+        ),
+        snackBarTheme: SnackBarThemeData(
+          actionTextColor: DarkThemeColors.primaryTextColor,
+          contentTextStyle: themeData.textTheme.labelMedium!.apply(
+            fontSizeDelta: 1.5,
+          ),
+          backgroundColor: const Color.fromARGB(255, 6, 25, 66),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ButtonStyle(
@@ -104,142 +116,178 @@ class _AuthScreenState extends State<AuthScreen> {
             // Actual content
             Scaffold(
               backgroundColor: Colors.transparent,
-              body: Padding(
-                padding: const EdgeInsets.only(left: 48, right: 48),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Image.asset('assets/img/GBC_logo.png', width: 130),
-                    const SizedBox(height: 12),
-
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 250),
-                      child: Text(
-                        isLogin ? 'Welcome' : 'Register',
-                        style: themeData.textTheme.headlineMedium,
-                        key: ValueKey(isLogin),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      isLogin
-                          ? 'Please Log in To Your Account'
-                          : 'create your account',
-                      style: themeData.textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 24),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      transitionBuilder: (child, animation) {
-                        return FadeTransition(
-                          opacity: animation,
-                          child: SizeTransition(
-                            sizeFactor: animation,
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: isLogin
-                          ? _LoginFields(
-                              key: const ValueKey('login'),
-                              emailController: emailController,
-                              passwordController: passwordController,
-                            )
-                          : _SignUpFields(
-                              key: const ValueKey('signup'),
-                              usernameController: usernameController,
-                              emailController: emailController,
-                              passwordController: passwordController,
-                            ),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: () async {
-                        /*      await authRepository.login(
-                          "oversycho41@gmail.com",
-
-                          "SuperSecret123!",
-                        ); */
-                        authRepository.login(
-                          emailController.text,
-                          passwordController.text,
-                        );
-                      },
-                      child: Text(
-                        isLogin ? 'Login' : 'Register',
-                        style: TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          isLogin = !isLogin;
-                        });
-                      },
-                      child: Row(
+              body: BlocProvider<AuthBloc>(
+                create: (context) {
+                  final bloc = AuthBloc(authRepository);
+                  bloc.stream.forEach((State) {
+                    if (State is AuthSuccess) {
+                      Navigator.of(context).pop();
+                    } else if (State is AuthErorr) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(State.exception.message)),
+                      );
+                    }
+                  });
+                  bloc.add(AuthStarted());
+                  return bloc;
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 48, right: 48),
+                  child: BlocBuilder<AuthBloc, AuthState>(
+                    buildWhen: (previous, current) {
+                      return current is AuthLoading ||
+                          current is AuthErorr ||
+                          current is AuthInitial;
+                    },
+                    builder: (context, state) {
+                      return Column(
                         mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Text(
-                            isLogin
-                                ? 'if you Dont Have An Account?'
-                                : 'You Already have Account ',
-                          ),
-                          SizedBox(width: 8),
-                          Text(
-                            isLogin ? 'Register' : 'Login',
-                            style: TextStyle(
-                              color: DarkThemeColors.primaryColor,
+                          Image.asset('assets/img/GBC_logo.png', width: 130),
+                          const SizedBox(height: 12),
+
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 250),
+                            child: Text(
+                              isLogin ? 'Welcome' : 'Register',
+                              style: themeData.textTheme.headlineMedium,
+                              key: ValueKey(isLogin),
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 12),
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 250),
-                      child: isLogin
-                          ? Column(
-                              key: const ValueKey('social-login'),
-                              crossAxisAlignment: CrossAxisAlignment.center,
+                          const SizedBox(height: 12),
+                          Text(
+                            state.isLoginMode
+                                ? 'Please Log in To Your Account'
+                                : 'create your account',
+                            style: themeData.textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 24),
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            transitionBuilder: (child, animation) {
+                              return FadeTransition(
+                                opacity: animation,
+                                child: SizeTransition(
+                                  sizeFactor: animation,
+                                  child: child,
+                                ),
+                              );
+                            },
+                            child: state.isLoginMode
+                                ? _LoginFields(
+                                    key: const ValueKey('login'),
+                                    emailController: emailController,
+                                    passwordController: passwordController,
+                                  )
+                                : _SignUpFields(
+                                    key: const ValueKey('signup'),
+                                    usernameController: usernameController,
+                                    emailController: emailController,
+                                    passwordController: passwordController,
+                                  ),
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton(
+                            onPressed: () async {
+                              BlocProvider.of<AuthBloc>(context).add(
+                                AuthButtonIsCliked(
+                                  emailController.text,
+                                  passwordController.text,
+                                  usernameController.text,
+                                ),
+                              );
+                            },
+                            child: state is AuthLoading
+                                ? CupertinoActivityIndicator(
+                                    color: const Color.fromARGB(
+                                      255,
+                                      13,
+                                      43,
+                                      141,
+                                    ),
+                                  )
+                                : Text(
+                                    state.isLoginMode ? 'Login' : 'Register',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                          ),
+                          const SizedBox(height: 12),
+                          GestureDetector(
+                            onTap: () {
+                              BlocProvider.of<AuthBloc>(
+                                context,
+                              ).add(AuthModeChageISClicked());
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Divider(height: 1),
-                                SizedBox(height: 10),
-                                const Text('Also You Can Login with'),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    IconButton(
-                                      onPressed: () {},
-                                      icon: Icon(
-                                        SimpleIcons.google,
-                                        size: 32,
-                                        color: const Color.fromARGB(
-                                          255,
-                                          192,
-                                          14,
-                                          14,
-                                        ),
-                                      ),
-                                    ),
-                                    IconButton(
-                                      onPressed: () {},
-                                      icon: Icon(
-                                        SimpleIcons.discord,
-                                        size: 32,
-                                        color: const Color(0xff5865F2),
-                                      ),
-                                    ),
-                                  ],
+                                Text(
+                                  state.isLoginMode
+                                      ? 'if you Dont Have An Account?'
+                                      : 'You Already have Account ',
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  state.isLoginMode ? 'Register' : 'Login',
+                                  style: TextStyle(
+                                    color: DarkThemeColors.primaryColor,
+                                  ),
                                 ),
                               ],
-                            )
-                          : const SizedBox.shrink(
-                              key: ValueKey('social-empty'),
                             ),
-                    ),
-                  ],
+                          ),
+                          SizedBox(height: 12),
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 250),
+                            child: isLogin
+                                ? Column(
+                                    key: const ValueKey('social-login'),
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Divider(height: 1),
+                                      SizedBox(height: 10),
+                                      const Text('Also You Can Login with'),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          IconButton(
+                                            onPressed: () {},
+                                            icon: Icon(
+                                              SimpleIcons.google,
+                                              size: 32,
+                                              color: const Color.fromARGB(
+                                                255,
+                                                192,
+                                                14,
+                                                14,
+                                              ),
+                                            ),
+                                          ),
+                                          IconButton(
+                                            onPressed: () {},
+                                            icon: Icon(
+                                              SimpleIcons.discord,
+                                              size: 32,
+                                              color: const Color(0xff5865F2),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  )
+                                : const SizedBox.shrink(
+                                    key: ValueKey('social-empty'),
+                                  ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                 ),
               ),
             ),

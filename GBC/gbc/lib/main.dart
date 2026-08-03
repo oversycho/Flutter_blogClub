@@ -68,7 +68,7 @@ class MyApp extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode
           .system, // will switch automatically later — swap to a Bloc-driven value once you wire up your theme cubit/bloc
-      home: const AuthScreen(),
+      home: const RootScreen(),
     );
   }
 }

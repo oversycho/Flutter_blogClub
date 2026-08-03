@@ -1,10 +1,25 @@
 part of 'auth_bloc.dart';
 
 sealed class AuthState extends Equatable {
-  const AuthState();
-  
+  const AuthState(this.isLoginMode);
+  final bool isLoginMode;
   @override
-  List<Object> get props => [];
+  List<Object> get props => [isLoginMode];
 }
 
-final class AuthInitial extends AuthState {}
+class AuthInitial extends AuthState {
+  const AuthInitial(super.isLoginMode);
+}
+
+class AuthLoading extends AuthState {
+  const AuthLoading(super.isLoginMode);
+}
+
+class AuthErorr extends AuthState {
+  final AppException exception;
+  const AuthErorr(super.isLoginMode, this.exception);
+}
+
+class AuthSuccess extends AuthState {
+  const AuthSuccess(super.isLoginMode);
+}
