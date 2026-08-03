@@ -13,6 +13,15 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   bool isLogin = true;
+  final TextEditingController usernameController = TextEditingController(
+    text: "Player1",
+  );
+  final TextEditingController emailController = TextEditingController(
+    text: "oversycho41@gmail.com",
+  );
+  final TextEditingController passwordController = TextEditingController(
+    text: "SuperSecret123!",
+  );
   @override
   Widget build(BuildContext context) {
     final ThemeData themeData = Theme.of(context);
@@ -132,8 +141,17 @@ class _AuthScreenState extends State<AuthScreen> {
                         );
                       },
                       child: isLogin
-                          ? const _LoginFields(key: ValueKey('login'))
-                          : const _SignUpFields(key: ValueKey('signup')),
+                          ? _LoginFields(
+                              key: const ValueKey('login'),
+                              emailController: emailController,
+                              passwordController: passwordController,
+                            )
+                          : _SignUpFields(
+                              key: const ValueKey('signup'),
+                              usernameController: usernameController,
+                              emailController: emailController,
+                              passwordController: passwordController,
+                            ),
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(
@@ -143,7 +161,10 @@ class _AuthScreenState extends State<AuthScreen> {
 
                           "SuperSecret123!",
                         ); */
-                        authRepository.refreshToken();
+                        authRepository.login(
+                          emailController.text,
+                          passwordController.text,
+                        );
                       },
                       child: Text(
                         isLogin ? 'Login' : 'Register',
@@ -230,13 +251,23 @@ class _AuthScreenState extends State<AuthScreen> {
 }
 
 class _SignUpFields extends StatelessWidget {
-  const _SignUpFields({super.key});
+  final TextEditingController usernameController;
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
+  const _SignUpFields({
+    super.key,
+    required this.usernameController,
+    required this.emailController,
+    required this.passwordController,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
+        SizedBox(height: 12),
         TextField(
+          controller: usernameController,
           decoration: InputDecoration(
             prefixIcon: Icon(CupertinoIcons.person),
             label: Text('UserName'),
@@ -244,6 +275,7 @@ class _SignUpFields extends StatelessWidget {
         ),
         SizedBox(height: 12),
         TextField(
+          controller: emailController,
           keyboardType: TextInputType.emailAddress,
           decoration: InputDecoration(
             prefixIcon: Icon(CupertinoIcons.at),
@@ -251,20 +283,27 @@ class _SignUpFields extends StatelessWidget {
           ),
         ),
         SizedBox(height: 12),
-        _PasswordTextField(),
+        _PasswordTextField(passwordController: passwordController),
       ],
     );
   }
 }
 
 class _LoginFields extends StatelessWidget {
-  const _LoginFields({super.key});
-
+  const _LoginFields({
+    super.key,
+    required this.emailController,
+    required this.passwordController,
+  });
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
+        SizedBox(height: 12),
         TextField(
+          controller: emailController,
           keyboardType: TextInputType.emailAddress,
           decoration: InputDecoration(
             prefixIcon: Icon(CupertinoIcons.at),
@@ -272,15 +311,15 @@ class _LoginFields extends StatelessWidget {
           ),
         ),
         SizedBox(height: 12),
-        _PasswordTextField(),
+        _PasswordTextField(passwordController: passwordController),
       ],
     );
   }
 }
 
 class _PasswordTextField extends StatefulWidget {
-  const _PasswordTextField({super.key});
-
+  const _PasswordTextField({required this.passwordController});
+  final TextEditingController passwordController;
   @override
   State<_PasswordTextField> createState() => _PasswordTextFieldState();
 }
@@ -290,6 +329,7 @@ class _PasswordTextFieldState extends State<_PasswordTextField> {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      controller: widget.passwordController,
       keyboardType: TextInputType.visiblePassword,
       obscureText: obscureText,
       decoration: InputDecoration(

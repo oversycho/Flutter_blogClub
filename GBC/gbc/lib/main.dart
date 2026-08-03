@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gbc/data/repo/auth_repository.dart';
 
 //import 'package:gbc/common/http_client.dart';
 //import 'package:gbc/data/source/banner_data_source.dart';
@@ -11,6 +12,7 @@ import 'package:gbc/ui/root.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await authRepository.loadAuthInfo();
   /* 
   // --- TEMPORARY DEBUG CHECK ---
   final bannerDataSource = BannerRemoteDataSource(restClient);
