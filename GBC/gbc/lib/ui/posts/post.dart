@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gbc/data/post.dart';
+
 import 'package:gbc/ui/posts/post_details.dart';
 import 'package:gbc/ui/widgets/image.dart';
 
@@ -19,7 +20,7 @@ class postItems extends StatelessWidget {
         borderRadius: borderRadius,
         onTap: () => Navigator.of(context).push(
           CupertinoPageRoute(
-            builder: (context) => PostDetailsScreen(post: posts),
+            builder: (context) => PostDetailsScreen(postSlug: posts.slug),
           ),
         ),
         child: SizedBox(
