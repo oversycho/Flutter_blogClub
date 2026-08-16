@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gbc/data/repo/auth_repository.dart';
 import 'package:gbc/theme.dart';
 import 'package:gbc/ui/auth/bloc/auth_bloc.dart';
+import 'package:gbc/ui/auth/email_confirmation_screen.dart';
 import 'package:simple_icons/simple_icons.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -126,6 +127,13 @@ class _AuthScreenState extends State<AuthScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text(State.exception.message)),
                       );
+                    } else if (State is AuthConfirmationRequired) {
+                      Navigator.of(context).push(
+                        CupertinoPageRoute(
+                          builder: (context) =>
+                              EmailConfirmationScreen(email: State.email),
+                        ),
+                      );
                     }
                   });
                   bloc.add(AuthStarted());
@@ -240,49 +248,52 @@ class _AuthScreenState extends State<AuthScreen> {
                             ),
                           ),
                           SizedBox(height: 12),
-                          AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 250),
-                            child: isLogin
-                                ? Column(
-                                    key: const ValueKey('social-login'),
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Divider(height: 1),
-                                      SizedBox(height: 10),
-                                      const Text('Also You Can Login with'),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          IconButton(
-                                            onPressed: () {},
-                                            icon: Icon(
-                                              SimpleIcons.google,
-                                              size: 32,
-                                              color: const Color.fromARGB(
-                                                255,
-                                                192,
-                                                14,
-                                                14,
-                                              ),
-                                            ),
-                                          ),
-                                          IconButton(
-                                            onPressed: () {},
-                                            icon: Icon(
-                                              SimpleIcons.discord,
-                                              size: 32,
-                                              color: const Color(0xff5865F2),
-                                            ),
-                                          ),
-                                        ],
+                          Column(
+                            key: const ValueKey('social-login'),
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Divider(height: 1),
+                              SizedBox(height: 10),
+                              Text(
+                                state.isLoginMode
+                                    ? 'Also You Can Login with'
+                                    : 'Or sign up with',
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  IconButton(
+                                    onPressed: () {
+                                      BlocProvider.of<AuthBloc>(context).add(
+                                        const AuthOAuthButtonClicked('google'),
+                                      );
+                                    },
+                                    icon: Icon(
+                                      SimpleIcons.google,
+                                      size: 32,
+                                      color: const Color.fromARGB(
+                                        255,
+                                        192,
+                                        14,
+                                        14,
                                       ),
-                                    ],
-                                  )
-                                : const SizedBox.shrink(
-                                    key: ValueKey('social-empty'),
+                                    ),
                                   ),
+                                  IconButton(
+                                    onPressed: () {
+                                      BlocProvider.of<AuthBloc>(context).add(
+                                        const AuthOAuthButtonClicked('discord'),
+                                      );
+                                    },
+                                    icon: Icon(
+                                      SimpleIcons.discord,
+                                      size: 32,
+                                      color: const Color(0xff5865F2),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ],
                       );

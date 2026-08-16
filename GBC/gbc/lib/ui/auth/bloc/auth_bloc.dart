@@ -19,19 +19,34 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             await authRepository.login(event.email, event.password);
             emit(AuthSuccess(isLoginMode));
           } else {
-            await authRepository.register(
+            final bool loggedInImmediately = await authRepository.register(
               event.username,
               event.email,
               event.password,
             );
-            emit(AuthSuccess(isLoginMode));
+            if (loggedInImmediately) {
+              emit(AuthSuccess(isLoginMode));
+            } else {
+              emit(AuthConfirmationRequired(isLoginMode, event.email));
+            }
           }
         } else if (event is AuthModeChageISClicked) {
           isLoginMode = !isLoginMode;
           emit(AuthInitial(isLoginMode));
+        } else if (event is AuthOAuthButtonClicked) {
+          emit(AuthLoading(isLoginMode));
+          await authRepository.signInWithOAuth(event.provider);
+          emit(AuthSuccess(isLoginMode));
+        } else if (event is AuthResendConfirmationClicked) {
+          await authRepository.resendConfirmationEmail(event.email);
         }
       } catch (e) {
-        emit(AuthErorr(isLoginMode, AppException()));
+        emit(
+          AuthErorr(
+            isLoginMode,
+            e is AppException ? e : AppException(message: e.toString()),
+          ),
+        );
       }
     });
   }

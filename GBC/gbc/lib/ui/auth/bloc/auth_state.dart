@@ -18,8 +18,21 @@ class AuthLoading extends AuthState {
 class AuthErorr extends AuthState {
   final AppException exception;
   const AuthErorr(super.isLoginMode, this.exception);
+
+  @override
+  List<Object> get props => [isLoginMode, exception];
 }
 
 class AuthSuccess extends AuthState {
   const AuthSuccess(super.isLoginMode);
+}
+
+/// Emitted after a successful signup when email confirmation is required —
+/// there's no session yet, just a message telling the user to check email.
+class AuthConfirmationRequired extends AuthState {
+  final String email;
+  const AuthConfirmationRequired(super.isLoginMode, this.email);
+
+  @override
+  List<Object> get props => [isLoginMode, email];
 }

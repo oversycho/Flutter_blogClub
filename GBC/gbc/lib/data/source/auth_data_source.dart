@@ -4,8 +4,9 @@ import 'package:gbc/data/common/http_response_validator.dart';
 
 abstract class IAuthDataSource {
   Future<AuthInfo> login(String email, String password);
-  Future<AuthInfo> register(String username, String email, String password);
+  Future<AuthInfo?> register(String username, String email, String password);
   Future<AuthInfo> refreshToken(String token);
+  Future<void> resendConfirmationEmail(String email);
 }
 
 class AuthRemoteDataSource
@@ -42,16 +43,40 @@ class AuthRemoteDataSource
   }
 
   @override
-  Future<AuthInfo> register(
+  Future<AuthInfo?> register(
     String username,
     String email,
     String password,
   ) async {
     final response = await httpClient.post(
       'signup',
-      data: {"username": username, "email": email, "password": password},
+      data: {
+        "email": email,
+        "password": password,
+        // Custom fields MUST be nested under "data" — Supabase silently
+        // ignores unknown top-level fields rather than erroring on them.
+        "data": {"username": username},
+      },
     );
     validateResponse(response);
-    return login(email, password);
+
+    // With email confirmation ON, Supabase returns a user but no
+    // access_token — there's no session yet, just a pending account.
+    if (response.data["access_token"] != null) {
+      return AuthInfo(
+        response.data["access_token"],
+        response.data["refresh_token"],
+      );
+    }
+    return null;
+  }
+
+  @override
+  Future<void> resendConfirmationEmail(String email) async {
+    final response = await httpClient.post(
+      'resend',
+      data: {"type": "signup", "email": email},
+    );
+    validateResponse(response);
   }
 }

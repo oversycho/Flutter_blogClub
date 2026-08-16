@@ -17,3 +17,19 @@ class AuthButtonIsCliked extends AuthEvent {
 }
 
 class AuthModeChageISClicked extends AuthEvent {}
+
+class AuthOAuthButtonClicked extends AuthEvent {
+  final String provider; // 'google' or 'discord'
+  const AuthOAuthButtonClicked(this.provider);
+
+  @override
+  List<Object> get props => [provider];
+}
+
+class AuthResendConfirmationClicked extends AuthEvent {
+  final String email;
+  const AuthResendConfirmationClicked(this.email);
+
+  @override
+  List<Object> get props => [email];
+}
