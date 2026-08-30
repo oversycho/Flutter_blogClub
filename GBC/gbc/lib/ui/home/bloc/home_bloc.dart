@@ -15,6 +15,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final IBannerRepository bannerRepository;
   final IPostReposiotry postReposiotry;
   final ICategoriesRepository categoriesRepository;
+
   HomeBloc({
     required this.bannerRepository,
     required this.postReposiotry,
@@ -36,11 +37,28 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
             HomeError(
               exception: e is AppException
                   ? e
-                  : AppException(message: 'Erorr  Happend :('),
+                  : AppException(message: e.toString()),
             ),
           );
         }
       }
     });
+
+    // Whenever a post is published anywhere in the app (create-post screen),
+    // silently refresh the feed so it shows up without the user manually
+    // pulling to refresh.
+    PostRepository.postCreatedNotifier.addListener(_onPostCreated);
+  }
+
+  void _onPostCreated() {
+    if (PostRepository.postCreatedNotifier.value != null) {
+      add(HomeRefresh());
+    }
+  }
+
+  @override
+  Future<void> close() {
+    PostRepository.postCreatedNotifier.removeListener(_onPostCreated);
+    return super.close();
   }
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:gbc/common/http_client.dart';
 import 'package:gbc/data/post.dart';
 import 'package:gbc/data/post_detail.dart';
@@ -11,12 +12,27 @@ abstract class IPostReposiotry {
   Future<bool> toggleLike(String postId);
   Future<bool> toggleBookmark(String postId);
   Future<void> incrementView(String postId);
+  Future<PostEntity> createPost({
+    required String title,
+    String? excerpt,
+    required String content,
+    String? coverImageUrl,
+    String? categoryId,
+  });
 }
 
 class PostRepository implements IPostReposiotry {
   final IPostDataSource dataSource;
 
+  /// Fires whenever a post is successfully created, carrying the new post.
+  /// Other blocs (e.g. HomeBloc) listen to this to know when to refresh,
+  /// without any direct coupling to the create-post screen/bloc.
+  static final ValueNotifier<PostEntity?> postCreatedNotifier = ValueNotifier(
+    null,
+  );
+
   PostRepository(this.dataSource);
+
   @override
   Future<List<PostEntity>> getPosts() {
     return dataSource.getPosts();
@@ -39,8 +55,25 @@ class PostRepository implements IPostReposiotry {
 
   @override
   Future<void> incrementView(String postId) {
-    // Fire-and-forget from the caller's perspective — a failed view-count
-    // bump shouldn't ever block or error out the reading experience.
     return dataSource.incrementView(postId).catchError((_) {});
+  }
+
+  @override
+  Future<PostEntity> createPost({
+    required String title,
+    String? excerpt,
+    required String content,
+    String? coverImageUrl,
+    String? categoryId,
+  }) async {
+    final post = await dataSource.createPost(
+      title: title,
+      excerpt: excerpt,
+      content: content,
+      coverImageUrl: coverImageUrl,
+      categoryId: categoryId,
+    );
+    postCreatedNotifier.value = post;
+    return post;
   }
 }

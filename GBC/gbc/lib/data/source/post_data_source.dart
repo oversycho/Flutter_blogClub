@@ -10,6 +10,13 @@ abstract class IPostDataSource {
   Future<bool> toggleLike(String postId);
   Future<bool> toggleBookmark(String postId);
   Future<void> incrementView(String postId);
+  Future<PostEntity> createPost({
+    required String title,
+    String? excerpt,
+    required String content,
+    String? coverImageUrl,
+    String? categoryId,
+  });
 }
 
 class PostRemoteDataSource
@@ -32,8 +39,6 @@ class PostRemoteDataSource
 
   @override
   Future<PostDetailEntity> getPostDetail(String slug) async {
-    // Auth is attached (not required, but if present it makes is_liked /
-    // is_bookmarked accurate for the logged-in user instead of always false).
     final response = await httpClient.post(
       'rpc/get_post_detail',
       data: {"post_slug": slug},
@@ -77,5 +82,47 @@ class PostRemoteDataSource
       options: await authHeader(),
     );
     validateResponse(response);
+  }
+
+  @override
+  Future<PostEntity> createPost({
+    required String title,
+    String? excerpt,
+    required String content,
+    String? coverImageUrl,
+    String? categoryId,
+  }) async {
+    final auth = await authHeader();
+    // 'posts' is a plain table, not a view — its raw columns don't include
+    // author_username/category_name, so re-fetch via posts_feed by the
+    // slug Postgres generates, giving us a fully-populated PostEntity.
+    final createResponse = await httpClient.post(
+      'posts',
+      data: {
+        "title": title,
+        if (excerpt != null && excerpt.isNotEmpty) "excerpt": excerpt,
+        "content": content,
+        if (coverImageUrl != null && coverImageUrl.isNotEmpty)
+          "cover_image_url": coverImageUrl,
+        if (categoryId != null && categoryId.isNotEmpty)
+          "category_id": categoryId,
+        "status": "published",
+      },
+      options: Options(
+        headers: {...auth.headers ?? {}, 'Prefer': 'return=representation'},
+      ),
+    );
+    validateResponse(createResponse);
+
+    final createdRows = createResponse.data as List;
+    final String newSlug = createdRows.first['slug'] as String;
+
+    final feedResponse = await httpClient.get(
+      'posts_feed',
+      queryParameters: {'slug': 'eq.$newSlug'},
+    );
+    validateResponse(feedResponse);
+    final feedRows = feedResponse.data as List;
+    return PostEntity.fromJson(feedRows.first as Map<String, dynamic>);
   }
 }
