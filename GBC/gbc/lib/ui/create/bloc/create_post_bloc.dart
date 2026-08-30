@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:gbc/data/categories.dart';
@@ -47,13 +49,31 @@ class CreatePostBloc extends Bloc<CreatePostEvent, CreatePostState> {
     final currentState = state;
     if (currentState is! CreatePostReady) return;
 
+    if (event.title.trim().isEmpty || event.content.trim().isEmpty) {
+      emit(
+        currentState.copyWith(
+          errorMessage: 'Title and content are required',
+        ),
+      );
+      return;
+    }
+
     emit(currentState.copyWith(isSubmitting: true, errorMessage: null));
     try {
+      String? coverImageUrl;
+      if (event.coverImageBytes != null &&
+          event.coverImageExtension != null) {
+        coverImageUrl = await postRepository.uploadCoverImage(
+          bytes: event.coverImageBytes!,
+          fileExtension: event.coverImageExtension!,
+        );
+      }
+
       final post = await postRepository.createPost(
         title: event.title,
         excerpt: event.excerpt,
         content: event.content,
-        coverImageUrl: event.coverImageUrl,
+        coverImageUrl: coverImageUrl,
         categoryId: event.categoryId,
       );
       emit(CreatePostSuccess(post));

@@ -19,6 +19,10 @@ abstract class IPostReposiotry {
     String? coverImageUrl,
     String? categoryId,
   });
+  Future<String> uploadCoverImage({
+    required Uint8List bytes,
+    required String fileExtension,
+  });
 }
 
 class PostRepository implements IPostReposiotry {
@@ -75,5 +79,16 @@ class PostRepository implements IPostReposiotry {
     );
     postCreatedNotifier.value = post;
     return post;
+  }
+
+  @override
+  Future<String> uploadCoverImage({
+    required Uint8List bytes,
+    required String fileExtension,
+  }) {
+    return dataSource.uploadCoverImage(
+      bytes: bytes,
+      fileExtension: fileExtension,
+    );
   }
 }

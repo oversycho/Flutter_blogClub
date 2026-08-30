@@ -1,13 +1,17 @@
+import 'dart:typed_data';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gbc/data/auth_info.dart';
+import 'package:gbc/data/categories.dart';
 import 'package:gbc/data/repo/auth_repository.dart';
 import 'package:gbc/data/repo/categoires_repository.dart';
 import 'package:gbc/data/repo/post_repository.dart';
 import 'package:gbc/ui/auth/auth.dart';
 import 'package:gbc/ui/create/bloc/create_post_bloc.dart';
 import 'package:gbc/ui/posts/post_details.dart';
+import 'package:image_picker/image_picker.dart';
 
 class CreatePostScreen extends StatelessWidget {
   const CreatePostScreen({super.key});
@@ -82,15 +86,16 @@ class _CreatePostFormState extends State<_CreatePostForm> {
   final _titleController = TextEditingController();
   final _excerptController = TextEditingController();
   final _contentController = TextEditingController();
-  final _coverImageController = TextEditingController();
   String? _selectedCategoryId;
+
+  Uint8List? _pickedImageBytes;
+  String? _pickedImageExtension;
 
   @override
   void dispose() {
     _titleController.dispose();
     _excerptController.dispose();
     _contentController.dispose();
-    _coverImageController.dispose();
     super.dispose();
   }
 
@@ -98,8 +103,31 @@ class _CreatePostFormState extends State<_CreatePostForm> {
     _titleController.clear();
     _excerptController.clear();
     _contentController.clear();
-    _coverImageController.clear();
-    setState(() => _selectedCategoryId = null);
+    setState(() {
+      _selectedCategoryId = null;
+      _pickedImageBytes = null;
+      _pickedImageExtension = null;
+    });
+  }
+
+  Future<void> _pickImage() async {
+    final XFile? picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85, // compress a bit — full-res phone photos are large
+      maxWidth: 1600,
+    );
+    if (picked == null) return;
+
+    final bytes = await picked.readAsBytes();
+    // e.g. "photo.JPG" -> "jpg"
+    final extension = picked.name.contains('.')
+        ? picked.name.split('.').last.toLowerCase()
+        : 'jpg';
+
+    setState(() {
+      _pickedImageBytes = bytes;
+      _pickedImageExtension = extension;
+    });
   }
 
   @override
@@ -130,8 +158,6 @@ class _CreatePostFormState extends State<_CreatePostForm> {
                 ),
               ),
             );
-            // Re-open a fresh form for writing another post, rather than
-            // getting stuck on the success state.
             context.read<CreatePostBloc>().add(CreatePostStarted());
           } else if (state is CreatePostReady && state.errorMessage != null) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -163,23 +189,14 @@ class _CreatePostFormState extends State<_CreatePostForm> {
                   onPressed: isSubmitting
                       ? null
                       : () {
-                          if (_titleController.text.trim().isEmpty ||
-                              _contentController.text.trim().isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                behavior: SnackBarBehavior.floating,
-                                content: Text('Title and content are required'),
-                              ),
-                            );
-                            return;
-                          }
                           context.read<CreatePostBloc>().add(
                             CreatePostSubmitted(
                               title: _titleController.text.trim(),
                               excerpt: _excerptController.text.trim(),
                               content: _contentController.text.trim(),
-                              coverImageUrl: _coverImageController.text.trim(),
                               categoryId: _selectedCategoryId,
+                              coverImageBytes: _pickedImageBytes,
+                              coverImageExtension: _pickedImageExtension,
                             ),
                           );
                         },
@@ -196,6 +213,55 @@ class _CreatePostFormState extends State<_CreatePostForm> {
             body: ListView(
               padding: const EdgeInsets.all(16),
               children: [
+                GestureDetector(
+                  onTap: isSubmitting ? null : _pickImage,
+                  child: Container(
+                    height: 180,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      image: _pickedImageBytes != null
+                          ? DecorationImage(
+                              image: MemoryImage(_pickedImageBytes!),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
+                    ),
+                    child: _pickedImageBytes == null
+                        ? Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(CupertinoIcons.photo, size: 36),
+                              SizedBox(height: 8),
+                              Text('Tap to add a cover image'),
+                            ],
+                          )
+                        : Align(
+                            alignment: Alignment.topRight,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: CircleAvatar(
+                                backgroundColor: Colors.black54,
+                                child: IconButton(
+                                  icon: const Icon(
+                                    CupertinoIcons.xmark,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
+                                  onPressed: isSubmitting
+                                      ? null
+                                      : () => setState(() {
+                                          _pickedImageBytes = null;
+                                          _pickedImageExtension = null;
+                                        }),
+                                ),
+                              ),
+                            ),
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 TextField(
                   controller: _titleController,
                   decoration: const InputDecoration(label: Text('Title')),
@@ -208,16 +274,9 @@ class _CreatePostFormState extends State<_CreatePostForm> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                TextField(
-                  controller: _coverImageController,
-                  decoration: const InputDecoration(
-                    label: Text('Cover image URL (optional)'),
-                  ),
-                ),
-                const SizedBox(height: 12),
                 if (categories.isNotEmpty)
                   DropdownButtonFormField<String>(
-                    value: _selectedCategoryId,
+                    initialValue: _selectedCategoryId,
                     decoration: const InputDecoration(label: Text('Category')),
                     items: categories
                         .map(

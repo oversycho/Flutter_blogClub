@@ -1,8 +1,13 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:gbc/common/auth_header.dart';
+import 'package:gbc/common/http_client.dart';
+import 'package:gbc/common/jwt_helper.dart';
 import 'package:gbc/data/common/http_response_validator.dart';
 import 'package:gbc/data/post.dart';
 import 'package:gbc/data/post_detail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class IPostDataSource {
   Future<List<PostEntity>> getPosts();
@@ -16,6 +21,10 @@ abstract class IPostDataSource {
     required String content,
     String? coverImageUrl,
     String? categoryId,
+  });
+  Future<String> uploadCoverImage({
+    required Uint8List bytes,
+    required String fileExtension,
   });
 }
 
@@ -93,9 +102,6 @@ class PostRemoteDataSource
     String? categoryId,
   }) async {
     final auth = await authHeader();
-    // 'posts' is a plain table, not a view — its raw columns don't include
-    // author_username/category_name, so re-fetch via posts_feed by the
-    // slug Postgres generates, giving us a fully-populated PostEntity.
     final createResponse = await httpClient.post(
       'posts',
       data: {
@@ -124,5 +130,56 @@ class PostRemoteDataSource
     validateResponse(feedResponse);
     final feedRows = feedResponse.data as List;
     return PostEntity.fromJson(feedRows.first as Map<String, dynamic>);
+  }
+
+  @override
+  Future<String> uploadCoverImage({
+    required Uint8List bytes,
+    required String fileExtension,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? accessToken = prefs.getString('access_token');
+    if (accessToken == null || accessToken.isEmpty) {
+      throw Exception('You must be logged in to upload an image.');
+    }
+
+    final String? userId = userIdFromAccessToken(accessToken);
+    if (userId == null) {
+      throw Exception('Could not determine user for upload path.');
+    }
+
+    // Storage RLS requires the first path segment to equal auth.uid().
+    final String fileName =
+        '${DateTime.now().millisecondsSinceEpoch}.$fileExtension';
+    final String path = '$userId/$fileName';
+
+    final response = await storageClient.post(
+      'object/post-covers/$path',
+      data: bytes,
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': _mimeTypeFor(fileExtension),
+        },
+      ),
+    );
+    validateResponse(response);
+
+    return '$supabasePublicStorageUrl/post-covers/$path';
+  }
+
+  String _mimeTypeFor(String extension) {
+    switch (extension.toLowerCase()) {
+      case 'png':
+        return 'image/png';
+      case 'webp':
+        return 'image/webp';
+      case 'gif':
+        return 'image/gif';
+      case 'jpg':
+      case 'jpeg':
+      default:
+        return 'image/jpeg';
+    }
   }
 }
