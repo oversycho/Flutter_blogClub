@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gbc/bloc/theme_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:gbc/data/repo/auth_repository.dart';
+import 'package:gbc/l10n/app_localizations.dart';
 import 'package:gbc/theme.dart';
 import 'package:gbc/ui/root.dart';
+import 'package:gbc/ui/settings/bloc/locale_bloc.dart';
+import 'package:gbc/ui/settings/bloc/theme_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,16 +19,31 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => ThemeBloc()..add(ThemeStarted()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => ThemeBloc()..add(ThemeStarted())),
+        BlocProvider(create: (context) => LocaleBloc()..add(LocaleStarted())),
+      ],
       child: BlocBuilder<ThemeBloc, ThemeState>(
-        builder: (context, state) {
-          return MaterialApp(
-            title: 'Vision Store',
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: state.themeMode,
-            home: const RootScreen(),
+        builder: (context, themeState) {
+          return BlocBuilder<LocaleBloc, LocaleState>(
+            builder: (context, localeState) {
+              return MaterialApp(
+                title: 'Vision Store',
+                theme: AppTheme.lightTheme,
+                darkTheme: AppTheme.darkTheme,
+                themeMode: themeState.themeMode,
+                locale: localeState.locale,
+                supportedLocales: AppLocalizations.supportedLocales,
+                localizationsDelegates: const [
+                  AppLocalizations.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                home: const RootScreen(),
+              );
+            },
           );
         },
       ),

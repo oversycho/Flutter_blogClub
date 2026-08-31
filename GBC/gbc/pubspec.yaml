@@ -9,7 +9,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
 
+ 
   # --- Networking (talks directly to Supabase's REST/Auth endpoints) ---
   dio: ^5.10.0
 

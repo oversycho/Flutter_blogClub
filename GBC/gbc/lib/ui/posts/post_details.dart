@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gbc/data/auth_info.dart';
-import 'package:gbc/data/post_detail.dart';
+
 import 'package:gbc/data/repo/auth_repository.dart';
 import 'package:gbc/data/repo/post_repository.dart';
 import 'package:gbc/theme.dart';
