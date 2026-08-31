@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gbc/ui/create/create_post.dart';
 import 'package:gbc/ui/home/home.dart';
+import 'package:gbc/ui/profile/profile.dart';
 
 const int homeIndex = 0;
 const int addPostIndex = 1;
@@ -68,11 +69,7 @@ class _RootScreenState extends State<RootScreen> {
           children: [
             _navigator(_homeKey, homeIndex, const HomeScreen()),
             _navigator(_addPostKey, addPostIndex, const CreatePostScreen()),
-            _navigator(
-              _profileKey,
-              profileIndex,
-              const Center(child: Text('Profile screen under development')),
-            ),
+            _navigator(_profileKey, profileIndex, const ProfileScreen()),
           ],
         ),
         bottomNavigationBar: BottomNavigationBar(

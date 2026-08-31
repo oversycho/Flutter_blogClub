@@ -14,7 +14,10 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
     on<ThemeModeChanged>(_onModeChanged);
   }
 
-  Future<void> _onStarted(ThemeStarted event, Emitter<ThemeState> emit) async {
+  Future<void> _onStarted(
+    ThemeStarted event,
+    Emitter<ThemeState> emit,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     final String? saved = prefs.getString(_themeModeKey);
     switch (saved) {
