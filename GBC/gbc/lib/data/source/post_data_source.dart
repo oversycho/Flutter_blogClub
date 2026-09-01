@@ -11,6 +11,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class IPostDataSource {
   Future<List<PostEntity>> getPosts();
+  Future<List<PostEntity>> getMyPosts();
+  Future<List<PostEntity>> getMyBookmarkedPosts();
   Future<PostDetailEntity> getPostDetail(String slug);
   Future<bool> toggleLike(String postId);
   Future<bool> toggleBookmark(String postId);
@@ -44,6 +46,72 @@ class PostRemoteDataSource
       posts.add(PostEntity.fromJson(element));
     });
     return posts;
+  }
+
+  @override
+  Future<List<PostEntity>> getMyPosts() async {
+    final userId = await _currentUserId();
+    final response = await httpClient.get(
+      'posts_feed',
+      queryParameters: {
+        'author_id': 'eq.$userId',
+        'status': 'eq.published',
+        'order': 'created_at.desc',
+      },
+      options: await authHeader(),
+    );
+    validateResponse(response);
+    return (response.data as List)
+        .map((e) => PostEntity.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  @override
+  Future<List<PostEntity>> getMyBookmarkedPosts() async {
+    // Step 1: which posts did I bookmark, newest first.
+    final bookmarksResponse = await httpClient.get(
+      'bookmarks',
+      queryParameters: {'select': 'post_id', 'order': 'created_at.desc'},
+      options: await authHeader(),
+    );
+    validateResponse(bookmarksResponse);
+    final bookmarkRows = bookmarksResponse.data as List;
+    if (bookmarkRows.isEmpty) return [];
+
+    final postIds = bookmarkRows
+        .map((row) => row['post_id'] as String)
+        .toList();
+
+    // Step 2: fetch those posts from the feed view.
+    final postsResponse = await httpClient.get(
+      'posts_feed',
+      queryParameters: {'id': 'in.(${postIds.join(',')})'},
+      options: await authHeader(),
+    );
+    validateResponse(postsResponse);
+    final postsById = {
+      for (final row in postsResponse.data as List)
+        row['id'] as String: PostEntity.fromJson(row as Map<String, dynamic>),
+    };
+
+    // Re-order to match bookmark recency — 'in.(...)' doesn't preserve order.
+    return postIds
+        .where((id) => postsById.containsKey(id))
+        .map((id) => postsById[id]!)
+        .toList();
+  }
+
+  Future<String> _currentUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? accessToken = prefs.getString('access_token');
+    if (accessToken == null || accessToken.isEmpty) {
+      throw Exception('Not authenticated');
+    }
+    final String? userId = userIdFromAccessToken(accessToken);
+    if (userId == null) {
+      throw Exception('Could not determine current user');
+    }
+    return userId;
   }
 
   @override

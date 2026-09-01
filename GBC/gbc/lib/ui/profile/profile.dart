@@ -8,7 +8,10 @@ import 'package:gbc/l10n/app_localizations.dart';
 import 'package:gbc/ui/auth/auth.dart';
 import 'package:gbc/ui/profile/appearance_settings.dart';
 import 'package:gbc/ui/profile/bloc/profile_bloc.dart';
+import 'package:gbc/ui/profile/edit_profile.dart';
 import 'package:gbc/ui/profile/language_settings.dart';
+import 'package:gbc/ui/profile/my_posts/my_posts_screen.dart';
+import 'package:gbc/ui/profile/saved/saved_posts_screen.dart';
 import 'package:gbc/ui/settings/bloc/locale_bloc.dart';
 import 'package:gbc/ui/settings/bloc/theme_bloc.dart';
 import 'package:gbc/ui/widgets/image.dart';
@@ -114,18 +117,30 @@ class _ProfileContent extends StatelessWidget {
               children: [
                 const SizedBox(height: 24),
                 Center(
-                  child: SizedBox(
-                    width: 88,
-                    height: 88,
-                    child: profile.avatarUrl != null
-                        ? ImageLoadingService(
-                            imageUrl: profile.avatarUrl!,
-                            borderRadius: BorderRadius.circular(44),
-                          )
-                        : const CircleAvatar(
-                            radius: 44,
-                            child: Icon(CupertinoIcons.person, size: 40),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        CupertinoPageRoute(
+                          builder: (routeContext) => BlocProvider.value(
+                            value: context.read<ProfileBloc>(),
+                            child: EditProfileScreen(profile: profile),
                           ),
+                        ),
+                      );
+                    },
+                    child: SizedBox(
+                      width: 88,
+                      height: 88,
+                      child: profile.avatarUrl != null
+                          ? ImageLoadingService(
+                              imageUrl: profile.avatarUrl!,
+                              borderRadius: BorderRadius.circular(44),
+                            )
+                          : const CircleAvatar(
+                              radius: 44,
+                              child: Icon(CupertinoIcons.person, size: 40),
+                            ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -148,7 +163,26 @@ class _ProfileContent extends StatelessWidget {
                     ),
                   ),
                 ],
+                const SizedBox(height: 12),
+                Center(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        CupertinoPageRoute(
+                          builder: (routeContext) => BlocProvider.value(
+                            value: context.read<ProfileBloc>(),
+                            child: EditProfileScreen(profile: profile),
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(CupertinoIcons.pencil, size: 16),
+                    label: const Text('Edit Profile'),
+                  ),
+                ),
                 const SizedBox(height: 32),
+                const _ContentSection(),
+                const SizedBox(height: 24),
                 const _SettingsSection(),
                 const SizedBox(height: 24),
                 Padding(
@@ -168,6 +202,40 @@ class _ProfileContent extends StatelessWidget {
           },
         ),
       ),
+    );
+  }
+}
+
+class _ContentSection extends StatelessWidget {
+  const _ContentSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoListSection.insetGrouped(
+      children: [
+        CupertinoListTile(
+          leading: const Icon(CupertinoIcons.square_grid_2x2),
+          title: const Text('My Posts'),
+          trailing: const CupertinoListTileChevron(),
+          onTap: () {
+            Navigator.of(context).push(
+              CupertinoPageRoute(builder: (context) => const MyPostsScreen()),
+            );
+          },
+        ),
+        CupertinoListTile(
+          leading: const Icon(CupertinoIcons.bookmark),
+          title: const Text('Saved'),
+          trailing: const CupertinoListTileChevron(),
+          onTap: () {
+            Navigator.of(context).push(
+              CupertinoPageRoute(
+                builder: (context) => const SavedPostsScreen(),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }

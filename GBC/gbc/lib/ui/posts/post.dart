@@ -34,10 +34,23 @@ class postItems extends StatelessWidget {
                 SizedBox(
                   width: 320,
                   height: 320,
-                  child: ImageLoadingService(
-                    imageUrl: posts.coverImageUrl,
-                    borderRadius: BorderRadius.circular(24),
-                  ),
+                  child: posts.coverImageUrl != null
+                      ? ImageLoadingService(
+                          imageUrl: posts.coverImageUrl!,
+                          borderRadius: BorderRadius.circular(24),
+                        )
+                      : ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: Container(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest,
+                            child: const Icon(
+                              CupertinoIcons.photo,
+                              size: 48,
+                            ),
+                          ),
+                        ),
                 ),
                 const SizedBox(height: 12),
                 Padding(
