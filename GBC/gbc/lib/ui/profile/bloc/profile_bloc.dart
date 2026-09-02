@@ -78,7 +78,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       emit(ProfileSuccess(updatedProfile));
     } catch (e) {
       emit(
-        currentState.copyWith(isSaving: false, errorMessage: e.toString()),
+        currentState.copyWith(
+          isSaving: false,
+          errorMessage: e is AppException ? e.message : e.toString(),
+        ),
       );
     }
   }

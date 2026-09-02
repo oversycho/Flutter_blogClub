@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:gbc/common/app_exception.dart';
 import 'package:gbc/data/categories.dart';
 import 'package:gbc/data/post.dart';
 import 'package:gbc/data/repo/categoires_repository.dart';
@@ -51,9 +52,7 @@ class CreatePostBloc extends Bloc<CreatePostEvent, CreatePostState> {
 
     if (event.title.trim().isEmpty || event.content.trim().isEmpty) {
       emit(
-        currentState.copyWith(
-          errorMessage: 'Title and content are required',
-        ),
+        currentState.copyWith(errorMessage: 'Title and content are required'),
       );
       return;
     }
@@ -61,8 +60,7 @@ class CreatePostBloc extends Bloc<CreatePostEvent, CreatePostState> {
     emit(currentState.copyWith(isSubmitting: true, errorMessage: null));
     try {
       String? coverImageUrl;
-      if (event.coverImageBytes != null &&
-          event.coverImageExtension != null) {
+      if (event.coverImageBytes != null && event.coverImageExtension != null) {
         coverImageUrl = await postRepository.uploadCoverImage(
           bytes: event.coverImageBytes!,
           fileExtension: event.coverImageExtension!,
@@ -79,7 +77,10 @@ class CreatePostBloc extends Bloc<CreatePostEvent, CreatePostState> {
       emit(CreatePostSuccess(post));
     } catch (e) {
       emit(
-        currentState.copyWith(isSubmitting: false, errorMessage: e.toString()),
+        currentState.copyWith(
+          isSubmitting: false,
+          errorMessage: e is AppException ? e.message : e.toString(),
+        ),
       );
     }
   }

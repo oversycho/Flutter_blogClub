@@ -59,7 +59,10 @@ class CommentListBloc extends Bloc<CommentListEvent, CommentListState> {
       );
     } catch (e) {
       emit(
-        currentState.copyWith(isSubmitting: false, errorMessage: e.toString()),
+        currentState.copyWith(
+          isSubmitting: false,
+          errorMessage: e is AppException ? e.message : e.toString(),
+        ),
       );
     }
   }
