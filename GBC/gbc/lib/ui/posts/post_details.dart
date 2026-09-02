@@ -4,10 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gbc/data/auth_info.dart';
 import 'package:gbc/data/post_detail.dart';
 import 'package:gbc/data/repo/auth_repository.dart';
+import 'package:gbc/data/repo/comment_repository.dart';
 import 'package:gbc/data/repo/post_repository.dart';
 import 'package:gbc/theme.dart';
 import 'package:gbc/ui/auth/auth.dart';
 import 'package:gbc/ui/posts/bloc/post_detail_bloc.dart';
+import 'package:gbc/ui/posts/comment/bloc/comment_list_bloc.dart';
 import 'package:gbc/ui/posts/comment/comment_list.dart';
 import 'package:gbc/ui/widgets/image.dart';
 
@@ -51,7 +53,12 @@ class PostDetailsScreen extends StatelessWidget {
 
           final post = (state as PostDetailSuccess).post;
 
-          return Scaffold(
+          return BlocProvider(
+            create: (context) => CommentListBloc(
+              repository: commentRepository,
+              postId: post.id,
+            )..add(CommentListStarted()),
+            child: Scaffold(
             floatingActionButton: FloatingActionButton(
               backgroundColor: post.isLiked
                   ? Colors.redAccent
@@ -223,22 +230,122 @@ class PostDetailsScreen extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text('${post.commentsCount} Comments'),
-                            TextButton(
-                              onPressed: () {},
-                              child: const Text('Leave a comment'),
-                            ),
                           ],
                         ),
+                        const SizedBox(height: 8),
+                        const _CommentComposer(),
                       ],
                     ),
                   ),
                 ),
-                CommentList(postId: post.id),
+                const CommentList(),
               ],
             ),
+          ),
           );
         },
       ),
+    );
+  }
+}
+
+class _CommentComposer extends StatefulWidget {
+  const _CommentComposer();
+
+  @override
+  State<_CommentComposer> createState() => _CommentComposerState();
+}
+
+class _CommentComposerState extends State<_CommentComposer> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<CommentListBloc, CommentListState>(
+      listener: (context, state) {
+        if (state is CommentListSuccess && !state.isSubmitting) {
+          if (state.errorMessage != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                behavior: SnackBarBehavior.floating,
+                content: Text(state.errorMessage!),
+              ),
+            );
+          } else {
+            // Successful post — clear the field for the next comment.
+            _controller.clear();
+          }
+        }
+      },
+      builder: (context, state) {
+        final bool isSubmitting =
+            state is CommentListSuccess && state.isSubmitting;
+
+        return Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _controller,
+                enabled: !isSubmitting,
+                decoration: const InputDecoration(
+                  hintText: 'Write a comment...',
+                ),
+              ),
+            ),
+            IconButton(
+              onPressed: isSubmitting
+                  ? null
+                  : () {
+                      final AuthInfo? authState =
+                          AuthRepository.authChangeNotifier.value;
+                      final bool isAuthenticated =
+                          authState != null &&
+                          authState.accessToken.isNotEmpty;
+
+                      if (!isAuthenticated) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            behavior: SnackBarBehavior.floating,
+                            content: const Text('Log in to comment'),
+                            action: SnackBarAction(
+                              label: 'Log in',
+                              onPressed: () {
+                                Navigator.of(
+                                  context,
+                                  rootNavigator: true,
+                                ).push(
+                                  CupertinoPageRoute(
+                                    builder: (context) => const AuthScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+
+                      context.read<CommentListBloc>().add(
+                        CommentListSubmitted(_controller.text),
+                      );
+                    },
+              icon: isSubmitting
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(CupertinoIcons.paperplane_fill),
+            ),
+          ],
+        );
+      },
     );
   }
 }

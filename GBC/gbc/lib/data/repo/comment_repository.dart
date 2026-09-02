@@ -8,14 +8,27 @@ final commentRepository = CommentRepository(
 
 abstract class ICommentRepository {
   Future<List<CommentEntity>> getComments({required String postId});
+  Future<CommentEntity> createComment({
+    required String postId,
+    required String content,
+  });
 }
 
 class CommentRepository implements ICommentRepository {
   final ICommentDataSource dataSource;
 
   CommentRepository(this.dataSource);
+
   @override
   Future<List<CommentEntity>> getComments({required String postId}) {
     return dataSource.getComments(postId: postId);
+  }
+
+  @override
+  Future<CommentEntity> createComment({
+    required String postId,
+    required String content,
+  }) {
+    return dataSource.createComment(postId: postId, content: content);
   }
 }

@@ -8,3 +8,11 @@ sealed class CommentListEvent extends Equatable {
 }
 
 class CommentListStarted extends CommentListEvent {}
+
+class CommentListSubmitted extends CommentListEvent {
+  final String content;
+  const CommentListSubmitted(this.content);
+
+  @override
+  List<Object> get props => [content];
+}

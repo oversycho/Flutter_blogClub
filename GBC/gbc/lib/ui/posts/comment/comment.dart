@@ -1,6 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gbc/data/comment.dart';
 import 'package:gbc/theme.dart';
+import 'package:gbc/ui/widgets/image.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class commentItem extends StatelessWidget {
   final CommentEntity data;
@@ -26,12 +29,30 @@ class commentItem extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [],
+              Row(
+                children: [
+                  SizedBox(
+                    width: 28,
+                    height: 28,
+                    child: data.authorAvatarUrl != null
+                        ? ImageLoadingService(
+                            imageUrl: data.authorAvatarUrl!,
+                            borderRadius: BorderRadius.circular(14),
+                          )
+                        : const CircleAvatar(
+                            radius: 14,
+                            child: Icon(CupertinoIcons.person, size: 14),
+                          ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    data.authorUsername ?? 'Unknown',
+                    style: themeData.textTheme.labelMedium,
+                  ),
+                ],
               ),
               Text(
-                data.createdAt,
+                timeago.format(data.createdAt),
                 style: themeData.textTheme.labelSmall!.apply(
                   color: const Color.fromARGB(144, 158, 158, 162),
                 ),
