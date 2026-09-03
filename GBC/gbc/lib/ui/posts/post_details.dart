@@ -6,7 +6,6 @@ import 'package:gbc/data/post_detail.dart';
 import 'package:gbc/data/repo/auth_repository.dart';
 import 'package:gbc/data/repo/comment_repository.dart';
 import 'package:gbc/data/repo/post_repository.dart';
-import 'package:gbc/theme.dart';
 import 'package:gbc/ui/auth/auth.dart';
 import 'package:gbc/ui/posts/bloc/post_detail_bloc.dart';
 import 'package:gbc/ui/posts/comment/bloc/comment_list_bloc.dart';
@@ -62,7 +61,7 @@ class PostDetailsScreen extends StatelessWidget {
             floatingActionButton: FloatingActionButton(
               backgroundColor: post.isLiked
                   ? Colors.redAccent
-                  : const Color.fromARGB(255, 72, 72, 73),
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
               onPressed: () {
                 final AuthInfo? authState =
                     AuthRepository.authChangeNotifier.value;
@@ -109,8 +108,10 @@ class PostDetailsScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(24),
                         )
                       : null,
-                  foregroundColor: LightThemeColors.primaryTextColor,
-                  backgroundColor: DarkThemeColors.backgroundColor,
+                  foregroundColor: post.coverImageUrl != null
+                      ? Colors.white
+                      : Theme.of(context).colorScheme.onSurface,
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                   actions: [
                     IconButton(
                       onPressed: () {
@@ -155,7 +156,7 @@ class PostDetailsScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.fromLTRB(8, 2, 8, 2),
                           decoration: BoxDecoration(
-                            color: DarkThemeColors.surfaceColor,
+                            color: Theme.of(context).colorScheme.surface,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
@@ -219,7 +220,7 @@ class PostDetailsScreen extends StatelessWidget {
                         const SizedBox(height: 16),
                         Container(
                           decoration: BoxDecoration(
-                            color: DarkThemeColors.surfaceColor,
+                            color: Theme.of(context).colorScheme.surface,
                             borderRadius: BorderRadius.circular(15),
                           ),
                           padding: const EdgeInsets.fromLTRB(12, 24, 12, 12),

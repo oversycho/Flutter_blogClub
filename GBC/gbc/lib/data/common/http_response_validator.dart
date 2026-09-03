@@ -12,13 +12,8 @@ mixin HttpResponseValidator {
     final data = response.data;
     String message = 'Something went wrong ($statusCode).';
     if (data is Map) {
-      message =
-          (data['msg'] ??
-                  data['error_description'] ??
-                  data['message'] ??
-                  data['error'] ??
-                  message)
-              .toString();
+      message = (data['msg'] ?? data['error_description'] ?? data['message'] ?? data['error'] ?? message)
+          .toString();
     }
     throw AppException(message: message);
   }
