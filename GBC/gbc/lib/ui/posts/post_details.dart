@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gbc/data/auth_info.dart';
-import 'package:gbc/data/post_detail.dart';
+
 import 'package:gbc/data/repo/auth_repository.dart';
 import 'package:gbc/data/repo/comment_repository.dart';
 import 'package:gbc/data/repo/post_repository.dart';
@@ -53,196 +53,197 @@ class PostDetailsScreen extends StatelessWidget {
           final post = (state as PostDetailSuccess).post;
 
           return BlocProvider(
-            create: (context) => CommentListBloc(
-              repository: commentRepository,
-              postId: post.id,
-            )..add(CommentListStarted()),
+            create: (context) =>
+                CommentListBloc(repository: commentRepository, postId: post.id)
+                  ..add(CommentListStarted()),
             child: Scaffold(
-            floatingActionButton: FloatingActionButton(
-              backgroundColor: post.isLiked
-                  ? Colors.redAccent
-                  : Theme.of(context).colorScheme.surfaceContainerHighest,
-              onPressed: () {
-                final AuthInfo? authState =
-                    AuthRepository.authChangeNotifier.value;
-                final bool isAuthenticated =
-                    authState != null && authState.accessToken.isNotEmpty;
+              floatingActionButton: FloatingActionButton(
+                backgroundColor: post.isLiked
+                    ? Colors.redAccent
+                    : Theme.of(context).colorScheme.surfaceContainerHighest,
+                onPressed: () {
+                  final AuthInfo? authState =
+                      AuthRepository.authChangeNotifier.value;
+                  final bool isAuthenticated =
+                      authState != null && authState.accessToken.isNotEmpty;
 
-                if (!isAuthenticated) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      behavior: SnackBarBehavior.floating,
-                      content: const Text('Log in to like posts'),
-                      action: SnackBarAction(
-                        label: 'Log in',
+                  if (!isAuthenticated) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        behavior: SnackBarBehavior.floating,
+                        content: const Text('Log in to like posts'),
+                        action: SnackBarAction(
+                          label: 'Log in',
+                          onPressed: () {
+                            Navigator.of(context, rootNavigator: true).push(
+                              CupertinoPageRoute(
+                                builder: (context) => const AuthScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+
+                  context.read<PostDetailBloc>().add(
+                    PostDetailLikeButtonClicked(),
+                  );
+                },
+                child: Icon(
+                  post.isLiked
+                      ? CupertinoIcons.heart_fill
+                      : CupertinoIcons.heart,
+                  color: post.isLiked ? Colors.white : null,
+                ),
+              ),
+              body: CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  SliverAppBar(
+                    expandedHeight: MediaQuery.of(context).size.width * 0.8,
+                    flexibleSpace: post.coverImageUrl != null
+                        ? ImageLoadingService(
+                            imageUrl: post.coverImageUrl!,
+                            borderRadius: BorderRadius.circular(24),
+                          )
+                        : null,
+                    foregroundColor: post.coverImageUrl != null
+                        ? Colors.white
+                        : Theme.of(context).colorScheme.onSurface,
+                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                    actions: [
+                      IconButton(
                         onPressed: () {
-                          Navigator.of(context, rootNavigator: true).push(
-                            CupertinoPageRoute(
-                              builder: (context) => const AuthScreen(),
-                            ),
+                          context.read<PostDetailBloc>().add(
+                            PostDetailBookmarkButtonClicked(),
                           );
                         },
-                      ),
-                    ),
-                  );
-                  return;
-                }
-
-                context.read<PostDetailBloc>().add(
-                  PostDetailLikeButtonClicked(),
-                );
-              },
-              child: Icon(
-                post.isLiked ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
-                color: post.isLiked ? Colors.white : null,
-              ),
-            ),
-            body: CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                SliverAppBar(
-                  expandedHeight: MediaQuery.of(context).size.width * 0.8,
-                  flexibleSpace: post.coverImageUrl != null
-                      ? ImageLoadingService(
-                          imageUrl: post.coverImageUrl!,
-                          borderRadius: BorderRadius.circular(24),
-                        )
-                      : null,
-                  foregroundColor: post.coverImageUrl != null
-                      ? Colors.white
-                      : Theme.of(context).colorScheme.onSurface,
-                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                  actions: [
-                    IconButton(
-                      onPressed: () {
-                        context.read<PostDetailBloc>().add(
-                          PostDetailBookmarkButtonClicked(),
-                        );
-                      },
-                      icon: Icon(
-                        post.isBookmarked
-                            ? CupertinoIcons.bookmark_fill
-                            : CupertinoIcons.bookmark,
-                      ),
-                    ),
-                  ],
-                ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              post.title,
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            if (post.excerpt != null)
-                              Text(
-                                post.excerpt!,
-                                style: Theme.of(context).textTheme.labelSmall,
-                              ),
-                            if (post.categoryName != null)
-                              Text(
-                                post.categoryName!,
-                                style: Theme.of(context).textTheme.labelSmall,
-                              ),
-                          ],
+                        icon: Icon(
+                          post.isBookmarked
+                              ? CupertinoIcons.bookmark_fill
+                              : CupertinoIcons.bookmark,
                         ),
-                        const SizedBox(height: 24),
-                        Container(
-                          padding: const EdgeInsets.fromLTRB(8, 2, 8, 2),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surface,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      ),
+                    ],
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                    left: 15,
-                                    right: 15,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      SizedBox(
-                                        width: 45,
-                                        height: 45,
-                                        child: post.authorAvatarUrl != null
-                                            ? ImageLoadingService(
-                                                imageUrl: post.authorAvatarUrl!,
-                                                borderRadius:
-                                                    BorderRadius.circular(45),
-                                              )
-                                            : const CircleAvatar(
-                                                child: Icon(
-                                                  CupertinoIcons.person,
+                              Text(
+                                post.title,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              if (post.excerpt != null)
+                                Text(
+                                  post.excerpt!,
+                                  style: Theme.of(context).textTheme.labelSmall,
+                                ),
+                              if (post.categoryName != null)
+                                Text(
+                                  post.categoryName!,
+                                  style: Theme.of(context).textTheme.labelSmall,
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                          Container(
+                            padding: const EdgeInsets.fromLTRB(8, 2, 8, 2),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 15,
+                                      right: 15,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        SizedBox(
+                                          width: 45,
+                                          height: 45,
+                                          child: post.authorAvatarUrl != null
+                                              ? ImageLoadingService(
+                                                  imageUrl:
+                                                      post.authorAvatarUrl!,
+                                                  borderRadius:
+                                                      BorderRadius.circular(45),
+                                                )
+                                              : const CircleAvatar(
+                                                  child: Icon(
+                                                    CupertinoIcons.person,
+                                                  ),
                                                 ),
-                                              ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Text(post.authorUsername),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      _StatColumn(
+                                        icon: CupertinoIcons.eye,
+                                        value: post.viewCount,
                                       ),
                                       const SizedBox(width: 12),
-                                      Text(post.authorUsername),
+                                      _StatColumn(
+                                        icon: CupertinoIcons.heart,
+                                        value: post.likesCount,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      _StatColumn(
+                                        icon: CupertinoIcons.bookmark,
+                                        value: post.bookmarksCount,
+                                      ),
                                     ],
                                   ),
                                 ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    _StatColumn(
-                                      icon: CupertinoIcons.eye,
-                                      value: post.viewCount,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    _StatColumn(
-                                      icon: CupertinoIcons.heart,
-                                      value: post.likesCount,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    _StatColumn(
-                                      icon: CupertinoIcons.bookmark,
-                                      value: post.bookmarksCount,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surface,
-                            borderRadius: BorderRadius.circular(15),
+                          const SizedBox(height: 16),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface,
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            padding: const EdgeInsets.fromLTRB(12, 24, 12, 12),
+                            width: MediaQuery.of(context).size.width,
+                            child: Text(post.content),
                           ),
-                          padding: const EdgeInsets.fromLTRB(12, 24, 12, 12),
-                          width: MediaQuery.of(context).size.width,
-                          child: Text(post.content),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('${post.commentsCount} Comments'),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        const _CommentComposer(),
-                      ],
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [Text('${post.commentsCount} Comments')],
+                          ),
+                          const SizedBox(height: 8),
+                          const _CommentComposer(),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                const CommentList(),
-              ],
+                  const CommentList(),
+                ],
+              ),
             ),
-          ),
           );
         },
       ),
@@ -306,8 +307,7 @@ class _CommentComposerState extends State<_CommentComposer> {
                       final AuthInfo? authState =
                           AuthRepository.authChangeNotifier.value;
                       final bool isAuthenticated =
-                          authState != null &&
-                          authState.accessToken.isNotEmpty;
+                          authState != null && authState.accessToken.isNotEmpty;
 
                       if (!isAuthenticated) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -317,10 +317,7 @@ class _CommentComposerState extends State<_CommentComposer> {
                             action: SnackBarAction(
                               label: 'Log in',
                               onPressed: () {
-                                Navigator.of(
-                                  context,
-                                  rootNavigator: true,
-                                ).push(
+                                Navigator.of(context, rootNavigator: true).push(
                                   CupertinoPageRoute(
                                     builder: (context) => const AuthScreen(),
                                   ),

@@ -50,45 +50,51 @@ Future<bool> _tryRefreshToken() async {
 /// comes back 401 (expired token), silently refresh and retry it ONCE
 /// before giving up. Since validateStatus never throws, a 401 arrives as
 /// a normal Response, which is why this hooks onResponse, not onError.
-final Dio restClient = Dio(
-  BaseOptions(
-    baseUrl: '$_supabaseUrl/rest/v1/',
-    headers: {'apikey': _supabaseAnonKey, 'Content-Type': 'application/json'},
-    validateStatus: _neverThrowOnStatus,
-  ),
-)..interceptors.add(
-    InterceptorsWrapper(
-      onResponse: (response, handler) async {
-        final bool isUnauthorized = response.statusCode == 401;
-        final bool alreadyRetried =
-            response.requestOptions.extra['retried_after_refresh'] == true;
+final Dio restClient =
+    Dio(
+        BaseOptions(
+          baseUrl: '$_supabaseUrl/rest/v1/',
+          headers: {
+            'apikey': _supabaseAnonKey,
+            'Content-Type': 'application/json',
+          },
+          validateStatus: _neverThrowOnStatus,
+        ),
+      )
+      ..interceptors.add(
+        InterceptorsWrapper(
+          onResponse: (response, handler) async {
+            final bool isUnauthorized = response.statusCode == 401;
+            final bool alreadyRetried =
+                response.requestOptions.extra['retried_after_refresh'] == true;
 
-        if (isUnauthorized && !alreadyRetried) {
-          final bool refreshed = await _tryRefreshToken();
-          if (refreshed) {
-            final prefs = await SharedPreferences.getInstance();
-            final String? newAccessToken = prefs.getString('access_token');
+            if (isUnauthorized && !alreadyRetried) {
+              final bool refreshed = await _tryRefreshToken();
+              if (refreshed) {
+                final prefs = await SharedPreferences.getInstance();
+                final String? newAccessToken = prefs.getString('access_token');
 
-            final retryOptions = response.requestOptions;
-            retryOptions.extra['retried_after_refresh'] = true;
-            if (newAccessToken != null &&
-                retryOptions.headers.containsKey('Authorization')) {
-              retryOptions.headers['Authorization'] = 'Bearer $newAccessToken';
+                final retryOptions = response.requestOptions;
+                retryOptions.extra['retried_after_refresh'] = true;
+                if (newAccessToken != null &&
+                    retryOptions.headers.containsKey('Authorization')) {
+                  retryOptions.headers['Authorization'] =
+                      'Bearer $newAccessToken';
+                }
+
+                try {
+                  final retryResponse = await restClient.fetch(retryOptions);
+                  return handler.resolve(retryResponse);
+                } catch (_) {
+                  // Retry itself failed — fall through and surface the
+                  // original 401 rather than throwing something new.
+                }
+              }
             }
-
-            try {
-              final retryResponse = await restClient.fetch(retryOptions);
-              return handler.resolve(retryResponse);
-            } catch (_) {
-              // Retry itself failed — fall through and surface the
-              // original 401 rather than throwing something new.
-            }
-          }
-        }
-        handler.next(response);
-      },
-    ),
-  );
+            handler.next(response);
+          },
+        ),
+      );
 
 /// Auth client — for signup/login/refresh/logout (different base path).
 final Dio authClient = Dio(
@@ -100,43 +106,60 @@ final Dio authClient = Dio(
 );
 
 /// Storage client — for uploading files (post cover images, avatars, etc).
-final Dio storageClient = Dio(
-  BaseOptions(
-    baseUrl: '$_supabaseUrl/storage/v1/',
-    headers: {'apikey': _supabaseAnonKey},
-    validateStatus: _neverThrowOnStatus,
-  ),
-)..interceptors.add(
-    InterceptorsWrapper(
-      onResponse: (response, handler) async {
-        final bool isUnauthorized = response.statusCode == 401;
-        final bool alreadyRetried =
-            response.requestOptions.extra['retried_after_refresh'] == true;
+final Dio storageClient =
+    Dio(
+        BaseOptions(
+          baseUrl: '$_supabaseUrl/storage/v1/',
+          headers: {'apikey': _supabaseAnonKey},
+          validateStatus: _neverThrowOnStatus,
+        ),
+      )
+      ..interceptors.add(
+        InterceptorsWrapper(
+          onResponse: (response, handler) async {
+            final bool isUnauthorized = response.statusCode == 401;
+            final bool alreadyRetried =
+                response.requestOptions.extra['retried_after_refresh'] == true;
 
-        if (isUnauthorized && !alreadyRetried) {
-          final bool refreshed = await _tryRefreshToken();
-          if (refreshed) {
-            final prefs = await SharedPreferences.getInstance();
-            final String? newAccessToken = prefs.getString('access_token');
+            if (isUnauthorized && !alreadyRetried) {
+              final bool refreshed = await _tryRefreshToken();
+              if (refreshed) {
+                final prefs = await SharedPreferences.getInstance();
+                final String? newAccessToken = prefs.getString('access_token');
 
-            final retryOptions = response.requestOptions;
-            retryOptions.extra['retried_after_refresh'] = true;
-            if (newAccessToken != null &&
-                retryOptions.headers.containsKey('Authorization')) {
-              retryOptions.headers['Authorization'] = 'Bearer $newAccessToken';
+                final retryOptions = response.requestOptions;
+                retryOptions.extra['retried_after_refresh'] = true;
+                if (newAccessToken != null &&
+                    retryOptions.headers.containsKey('Authorization')) {
+                  retryOptions.headers['Authorization'] =
+                      'Bearer $newAccessToken';
+                }
+
+                try {
+                  final retryResponse = await storageClient.fetch(retryOptions);
+                  return handler.resolve(retryResponse);
+                } catch (_) {}
+              }
             }
-
-            try {
-              final retryResponse = await storageClient.fetch(retryOptions);
-              return handler.resolve(retryResponse);
-            } catch (_) {}
-          }
-        }
-        handler.next(response);
-      },
-    ),
-  );
+            handler.next(response);
+          },
+        ),
+      );
 
 /// Public base URL for reading files back out of public buckets.
 const String supabasePublicStorageUrl =
     '$_supabaseUrl/storage/v1/object/public';
+
+/// Get a free key at https://newsapi.org — sign up, copy your key here.
+/// Free "Developer" tier: works fine from a compiled mobile app, but
+/// NewsAPI blocks direct browser/CORS requests on that tier — so this
+/// won't work if you build for Flutter Web without a backend proxy.
+const String _newsApiKey = '2c22eb97f1c543abba3cdd2e7e56c541';
+
+final Dio newsApiClient = Dio(
+  BaseOptions(
+    baseUrl: 'https://newsapi.org/v2/',
+    headers: {'X-Api-Key': _newsApiKey},
+    validateStatus: _neverThrowOnStatus,
+  ),
+);

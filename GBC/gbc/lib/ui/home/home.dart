@@ -11,6 +11,7 @@ import 'package:gbc/ui/home/bloc/home_bloc.dart';
 import 'package:gbc/data/repo/categoires_repository.dart';
 import 'package:gbc/data/repo/post_repository.dart';
 import 'package:gbc/ui/home/footer.dart';
+import 'package:gbc/ui/home/live_articles/live_articles_section.dart';
 import 'package:gbc/ui/posts/post.dart';
 
 import 'package:gbc/ui/widgets/slider.dart';
@@ -36,7 +37,7 @@ class HomeScreen extends StatelessWidget {
             builder: (context, state) {
               if (state is HomeSuccess) {
                 return ListView.builder(
-                  itemCount: 7,
+                  itemCount: 8,
                   itemBuilder: (context, index) {
                     switch (index) {
                       case 0:
@@ -60,9 +61,11 @@ class HomeScreen extends StatelessWidget {
                           onTap: () {},
                         );
                       case 5:
+                        return const LiveArticlesSection();
+                      case 6:
                         return SizedBox(height: 100);
 
-                      case 6:
+                      case 7:
                         return FooterHome();
                       default:
                         return const SizedBox.shrink();
