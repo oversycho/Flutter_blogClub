@@ -12,6 +12,7 @@ import 'package:gbc/data/repo/categoires_repository.dart';
 import 'package:gbc/data/repo/post_repository.dart';
 import 'package:gbc/ui/home/footer.dart';
 import 'package:gbc/ui/home/live_articles/live_articles_section.dart';
+import 'package:gbc/ui/posts/all_posts/all_posts_screen.dart';
 import 'package:gbc/ui/posts/post.dart';
 
 import 'package:gbc/ui/widgets/slider.dart';
@@ -50,7 +51,13 @@ class HomeScreen extends StatelessWidget {
                         return BannerSlider(banners: state.banners);
                       case 3:
                         return _HorizontalPostList(
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.of(context).push(
+                              CupertinoPageRoute(
+                                builder: (context) => const AllPostsScreen(),
+                              ),
+                            );
+                          },
                           post: state.posts,
                           title: 'Latest Feeds',
                         );
