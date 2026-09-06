@@ -140,9 +140,9 @@ class _ArticleGridTile extends StatelessWidget {
                   : ClipRRect(
                       borderRadius: BorderRadius.circular(16),
                       child: Container(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHighest,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
                         child: const Icon(CupertinoIcons.photo, size: 32),
                       ),
                     ),

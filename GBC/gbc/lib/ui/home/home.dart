@@ -14,6 +14,7 @@ import 'package:gbc/ui/home/footer.dart';
 import 'package:gbc/ui/home/live_articles/live_articles_section.dart';
 import 'package:gbc/ui/posts/all_posts/all_posts_screen.dart';
 import 'package:gbc/ui/posts/post.dart';
+import 'package:gbc/ui/search/search_screen.dart';
 
 import 'package:gbc/ui/widgets/slider.dart';
 
@@ -42,10 +43,33 @@ class HomeScreen extends StatelessWidget {
                   itemBuilder: (context, index) {
                     switch (index) {
                       case 0:
-                        return Container(
-                          height: 56,
-                          alignment: Alignment.center,
-                          child: Image.asset('assets/img/GBC_logo.png'),
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const SizedBox(width: 48),
+                              Expanded(
+                                child: SizedBox(
+                                  height: 56,
+                                  child: Image.asset(
+                                    'assets/img/GBC_logo.png',
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(CupertinoIcons.search),
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    CupertinoPageRoute(
+                                      builder: (context) =>
+                                          const SearchScreen(),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
                         );
                       case 2:
                         return BannerSlider(banners: state.banners);

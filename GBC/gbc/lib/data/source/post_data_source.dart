@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class IPostDataSource {
   Future<List<PostEntity>> getPosts();
+  Future<List<PostEntity>> searchPosts(String query);
   Future<List<PostEntity>> getMyPosts();
   Future<List<PostEntity>> getMyBookmarkedPosts();
   Future<PostDetailEntity> getPostDetail(String slug);
@@ -46,6 +47,18 @@ class PostRemoteDataSource
       posts.add(PostEntity.fromJson(element));
     });
     return posts;
+  }
+
+  @override
+  Future<List<PostEntity>> searchPosts(String query) async {
+    final response = await httpClient.post(
+      'rpc/search_posts',
+      data: {'query': query},
+    );
+    validateResponse(response);
+    return (response.data as List)
+        .map((e) => PostEntity.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   @override

@@ -8,6 +8,7 @@ final postRepository = PostRepository(PostRemoteDataSource(restClient));
 
 abstract class IPostReposiotry {
   Future<List<PostEntity>> getPosts();
+  Future<List<PostEntity>> searchPosts(String query);
   Future<List<PostEntity>> getMyPosts();
   Future<List<PostEntity>> getMyBookmarkedPosts();
   Future<PostDetailEntity> getPostDetail(String slug);
@@ -42,6 +43,11 @@ class PostRepository implements IPostReposiotry {
   @override
   Future<List<PostEntity>> getPosts() {
     return dataSource.getPosts();
+  }
+
+  @override
+  Future<List<PostEntity>> searchPosts(String query) {
+    return dataSource.searchPosts(query);
   }
 
   @override
