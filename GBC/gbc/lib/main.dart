@@ -40,7 +40,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> _handleIncomingLinks() async {
     // App was fully closed, opened directly via the email link.
     try {
-      final Uri? initialUri = await _appLinks.getInitialAppLink();
+      final Uri? initialUri = await _appLinks.getInitialLink();
       if (initialUri != null) _handleUri(initialUri);
     } catch (_) {
       // No initial link — completely normal, just a regular app launch.
