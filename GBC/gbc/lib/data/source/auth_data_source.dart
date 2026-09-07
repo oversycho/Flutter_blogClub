@@ -7,6 +7,11 @@ abstract class IAuthDataSource {
   Future<AuthInfo?> register(String username, String email, String password);
   Future<AuthInfo> refreshToken(String token);
   Future<void> resendConfirmationEmail(String email);
+  Future<void> sendPasswordResetEmail(String email);
+  Future<void> updatePassword({
+    required String accessToken,
+    required String newPassword,
+  });
 }
 
 class AuthRemoteDataSource
@@ -53,15 +58,11 @@ class AuthRemoteDataSource
       data: {
         "email": email,
         "password": password,
-        // Custom fields MUST be nested under "data" — Supabase silently
-        // ignores unknown top-level fields rather than erroring on them.
         "data": {"username": username},
       },
     );
     validateResponse(response);
 
-    // With email confirmation ON, Supabase returns a user but no
-    // access_token — there's no session yet, just a pending account.
     if (response.data["access_token"] != null) {
       return AuthInfo(
         response.data["access_token"],
@@ -76,6 +77,35 @@ class AuthRemoteDataSource
     final response = await httpClient.post(
       'resend',
       data: {"type": "signup", "email": email},
+    );
+    validateResponse(response);
+  }
+
+  @override
+  Future<void> sendPasswordResetEmail(String email) async {
+    // redirect_to must exactly match an entry in Supabase's
+    // Authentication > URL Configuration > Redirect URLs allow-list,
+    // or Supabase silently falls back to the project's Site URL instead.
+    final response = await httpClient.post(
+      'recover',
+      queryParameters: {'redirect_to': 'gbcreset://reset-password'},
+      data: {'email': email},
+    );
+    validateResponse(response);
+  }
+
+  @override
+  Future<void> updatePassword({
+    required String accessToken,
+    required String newPassword,
+  }) async {
+    // Supabase identifies WHICH user's password to change via the
+    // recovery access_token in the Authorization header — not via any
+    // field in the request body.
+    final response = await httpClient.put(
+      'user',
+      data: {'password': newPassword},
+      options: Options(headers: {'Authorization': 'Bearer $accessToken'}),
     );
     validateResponse(response);
   }

@@ -27,6 +27,19 @@ abstract class IAuthRepository {
 
   /// provider must be 'google' or 'discord'.
   Future<void> signInWithOAuth(String provider);
+
+  Future<void> sendPasswordResetEmail(String email);
+
+  /// Called after the user taps the reset link in their email and enters
+  /// a new password. accessToken/refreshToken come from that email link's
+  /// deep link fragment (see main.dart's app_links listener) — on success
+  /// this also logs the user in with that session, so they don't have to
+  /// separately log in again right after resetting.
+  Future<void> completePasswordReset({
+    required String accessToken,
+    required String refreshToken,
+    required String newPassword,
+  });
 }
 
 class AuthRepository implements IAuthRepository {
@@ -77,6 +90,28 @@ class AuthRepository implements IAuthRepository {
   @override
   Future<void> resendConfirmationEmail(String email) {
     return dataSource.resendConfirmationEmail(email);
+  }
+
+  @override
+  Future<void> sendPasswordResetEmail(String email) {
+    return dataSource.sendPasswordResetEmail(email);
+  }
+
+  @override
+  Future<void> completePasswordReset({
+    required String accessToken,
+    required String refreshToken,
+    required String newPassword,
+  }) async {
+    await dataSource.updatePassword(
+      accessToken: accessToken,
+      newPassword: newPassword,
+    );
+    // The recovery token is itself a valid session — log the user in
+    // with it rather than forcing a separate login right after reset.
+    final authInfo = AuthInfo(accessToken, refreshToken);
+    await _persistAuthTokens(authInfo);
+    authChangeNotifier.value = authInfo;
   }
 
   @override

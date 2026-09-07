@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gbc/data/repo/auth_repository.dart';
 import 'package:gbc/ui/auth/bloc/auth_bloc.dart';
 import 'package:gbc/ui/auth/email_confirmation_screen.dart';
+import 'package:gbc/ui/auth/forgot_password_screen.dart';
 import 'package:simple_icons/simple_icons.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -174,6 +175,21 @@ class _AuthScreenState extends State<AuthScreen> {
                                     passwordController: passwordController,
                                   ),
                           ),
+                          if (state.isLoginMode)
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    CupertinoPageRoute(
+                                      builder: (context) =>
+                                          const ForgotPasswordScreen(),
+                                    ),
+                                  );
+                                },
+                                child: const Text('Forgot password?'),
+                              ),
+                            ),
                           const SizedBox(height: 24),
                           ElevatedButton(
                             onPressed: () async {

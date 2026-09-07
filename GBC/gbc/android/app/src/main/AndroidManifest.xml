@@ -24,6 +24,21 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Password reset deep link (arrives via email, NOT via
+                 flutter_web_auth_2 — that only catches redirects from
+                 sessions it opened itself). Uses a DIFFERENT scheme than
+                 OAuth's "gbc" on purpose: flutter_web_auth_2's own
+                 callback activity (registered via the
+                 appAuthRedirectScheme manifest placeholder) matches by
+                 scheme only, with no host constraint — reusing "gbc" here
+                 would make Android see two activities claiming the same
+                 link and reintroduce the CANCELED bug from OAuth setup. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="gbcreset"/>
+            </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
