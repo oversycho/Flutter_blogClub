@@ -2,9 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gbc/data/repo/auth_repository.dart';
+import 'package:gbc/theme.dart';
 import 'package:gbc/ui/auth/bloc/auth_bloc.dart';
 import 'package:gbc/ui/auth/email_confirmation_screen.dart';
-import 'package:gbc/ui/auth/forgot_password_screen.dart';
 import 'package:simple_icons/simple_icons.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -16,29 +16,39 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   bool isLogin = true;
+  /*   final TextEditingController usernameController = TextEditingController(
+    text: "Player1",
+  );
+  final TextEditingController emailController = TextEditingController(
+    text: "oversycho41@gmail.com",
+  );
+  final TextEditingController passwordController = TextEditingController(
+    text: "SuperSecret123!",
+  );  */
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-
   @override
   Widget build(BuildContext context) {
     final ThemeData themeData = Theme.of(context);
-    final ColorScheme colors = themeData.colorScheme;
-
     return Theme(
       data: themeData.copyWith(
         inputDecorationTheme: InputDecorationTheme(
-          labelStyle: TextStyle(color: colors.onSurface),
+          labelStyle: TextStyle(color: DarkThemeColors.primaryTextColor),
           border: OutlineInputBorder(
-            borderSide: BorderSide(color: colors.outline, width: 0.5),
+            borderSide: BorderSide(
+              color: const Color.fromARGB(255, 40, 40, 41),
+              width: 0.5,
+            ),
             borderRadius: BorderRadius.circular(15),
           ),
         ),
         snackBarTheme: SnackBarThemeData(
-          actionTextColor: colors.onInverseSurface,
-          contentTextStyle: themeData.textTheme.labelMedium!
-              .apply(color: colors.onInverseSurface, fontSizeDelta: 1.5),
-          backgroundColor: colors.inverseSurface,
+          actionTextColor: DarkThemeColors.primaryTextColor,
+          contentTextStyle: themeData.textTheme.labelMedium!.apply(
+            fontSizeDelta: 1.5,
+          ),
+          backgroundColor: const Color.fromARGB(255, 6, 25, 66),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ButtonStyle(
@@ -46,15 +56,21 @@ class _AuthScreenState extends State<AuthScreen> {
             shape: WidgetStatePropertyAll(
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
             ),
-            backgroundColor: WidgetStatePropertyAll(colors.primary),
-            foregroundColor: WidgetStatePropertyAll(colors.onPrimary),
+            backgroundColor: WidgetStatePropertyAll(
+              DarkThemeColors.primaryTextColor,
+            ),
+            foregroundColor: WidgetStatePropertyAll(
+              DarkThemeColors.surfaceColor,
+            ),
           ),
         ),
       ),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOut,
-        color: themeData.scaffoldBackgroundColor,
+        color: isLogin
+            ? DarkThemeColors.backgroundColor
+            : const Color(0xff1A1A1D),
         child: Stack(
           children: [
             // Background blob 1
@@ -70,8 +86,10 @@ class _AuthScreenState extends State<AuthScreen> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color:
-                      (isLogin ? colors.primary : const Color(0xff5865F2))
-                          .withValues(alpha: 0.18),
+                      (isLogin
+                              ? DarkThemeColors.primaryColor
+                              : const Color(0xff5865F2))
+                          .withOpacity(0.18),
                 ),
               ),
             ),
@@ -88,8 +106,10 @@ class _AuthScreenState extends State<AuthScreen> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color:
-                      (isLogin ? colors.secondary : colors.primary)
-                          .withValues(alpha: 0.15),
+                      (isLogin
+                              ? const Color.fromARGB(255, 10, 93, 218)
+                              : DarkThemeColors.primaryColor)
+                          .withOpacity(0.15),
                 ),
               ),
             ),
@@ -175,21 +195,6 @@ class _AuthScreenState extends State<AuthScreen> {
                                     passwordController: passwordController,
                                   ),
                           ),
-                          if (state.isLoginMode)
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).push(
-                                    CupertinoPageRoute(
-                                      builder: (context) =>
-                                          const ForgotPasswordScreen(),
-                                    ),
-                                  );
-                                },
-                                child: const Text('Forgot password?'),
-                              ),
-                            ),
                           const SizedBox(height: 24),
                           ElevatedButton(
                             onPressed: () async {
@@ -203,7 +208,12 @@ class _AuthScreenState extends State<AuthScreen> {
                             },
                             child: state is AuthLoading
                                 ? CupertinoActivityIndicator(
-                                    color: colors.onPrimary,
+                                    color: const Color.fromARGB(
+                                      255,
+                                      13,
+                                      43,
+                                      141,
+                                    ),
                                   )
                                 : Text(
                                     state.isLoginMode ? 'Login' : 'Register',
@@ -230,7 +240,9 @@ class _AuthScreenState extends State<AuthScreen> {
                                 SizedBox(width: 8),
                                 Text(
                                   state.isLoginMode ? 'Register' : 'Login',
-                                  style: TextStyle(color: colors.primary),
+                                  style: TextStyle(
+                                    color: DarkThemeColors.primaryColor,
+                                  ),
                                 ),
                               ],
                             ),
@@ -256,13 +268,15 @@ class _AuthScreenState extends State<AuthScreen> {
                                         const AuthOAuthButtonClicked('google'),
                                       );
                                     },
-                                    // Brand icon colors stay fixed regardless
-                                    // of app theme — that's intentional, not
-                                    // a theming bug.
-                                    icon: const Icon(
+                                    icon: Icon(
                                       SimpleIcons.google,
                                       size: 32,
-                                      color: Color.fromARGB(255, 192, 14, 14),
+                                      color: const Color.fromARGB(
+                                        255,
+                                        192,
+                                        14,
+                                        14,
+                                      ),
                                     ),
                                   ),
                                   IconButton(
@@ -271,10 +285,10 @@ class _AuthScreenState extends State<AuthScreen> {
                                         const AuthOAuthButtonClicked('discord'),
                                       );
                                     },
-                                    icon: const Icon(
+                                    icon: Icon(
                                       SimpleIcons.discord,
                                       size: 32,
-                                      color: Color(0xff5865F2),
+                                      color: const Color(0xff5865F2),
                                     ),
                                   ),
                                 ],
