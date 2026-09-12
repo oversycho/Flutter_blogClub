@@ -2,9 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gbc/data/repo/auth_repository.dart';
-import 'package:gbc/theme.dart';
 import 'package:gbc/ui/auth/bloc/auth_bloc.dart';
 import 'package:gbc/ui/auth/email_confirmation_screen.dart';
+import 'package:gbc/ui/auth/forgot_password_screen.dart';
 import 'package:simple_icons/simple_icons.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -16,39 +16,31 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> {
   bool isLogin = true;
-  /*   final TextEditingController usernameController = TextEditingController(
-    text: "Player1",
-  );
-  final TextEditingController emailController = TextEditingController(
-    text: "oversycho41@gmail.com",
-  );
-  final TextEditingController passwordController = TextEditingController(
-    text: "SuperSecret123!",
-  );  */
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     final ThemeData themeData = Theme.of(context);
+    final ColorScheme colors = themeData.colorScheme;
+
     return Theme(
       data: themeData.copyWith(
         inputDecorationTheme: InputDecorationTheme(
-          labelStyle: TextStyle(color: DarkThemeColors.primaryTextColor),
+          labelStyle: TextStyle(color: colors.onSurface),
           border: OutlineInputBorder(
-            borderSide: BorderSide(
-              color: const Color.fromARGB(255, 40, 40, 41),
-              width: 0.5,
-            ),
+            borderSide: BorderSide(color: colors.outline, width: 0.5),
             borderRadius: BorderRadius.circular(15),
           ),
         ),
         snackBarTheme: SnackBarThemeData(
-          actionTextColor: DarkThemeColors.primaryTextColor,
+          actionTextColor: colors.onInverseSurface,
           contentTextStyle: themeData.textTheme.labelMedium!.apply(
+            color: colors.onInverseSurface,
             fontSizeDelta: 1.5,
           ),
-          backgroundColor: const Color.fromARGB(255, 6, 25, 66),
+          backgroundColor: colors.inverseSurface,
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ButtonStyle(
@@ -56,21 +48,15 @@ class _AuthScreenState extends State<AuthScreen> {
             shape: WidgetStatePropertyAll(
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
             ),
-            backgroundColor: WidgetStatePropertyAll(
-              DarkThemeColors.primaryTextColor,
-            ),
-            foregroundColor: WidgetStatePropertyAll(
-              DarkThemeColors.surfaceColor,
-            ),
+            backgroundColor: WidgetStatePropertyAll(colors.primary),
+            foregroundColor: WidgetStatePropertyAll(colors.onPrimary),
           ),
         ),
       ),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOut,
-        color: isLogin
-            ? DarkThemeColors.backgroundColor
-            : const Color(0xff1A1A1D),
+        color: themeData.scaffoldBackgroundColor,
         child: Stack(
           children: [
             // Background blob 1
@@ -85,11 +71,8 @@ class _AuthScreenState extends State<AuthScreen> {
                 height: 220,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color:
-                      (isLogin
-                              ? DarkThemeColors.primaryColor
-                              : const Color(0xff5865F2))
-                          .withOpacity(0.18),
+                  color: (isLogin ? colors.primary : const Color(0xff5865F2))
+                      .withValues(alpha: 0.18),
                 ),
               ),
             ),
@@ -105,11 +88,8 @@ class _AuthScreenState extends State<AuthScreen> {
                 height: 260,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color:
-                      (isLogin
-                              ? const Color.fromARGB(255, 10, 93, 218)
-                              : DarkThemeColors.primaryColor)
-                          .withOpacity(0.15),
+                  color: (isLogin ? colors.secondary : colors.primary)
+                      .withValues(alpha: 0.15),
                 ),
               ),
             ),
@@ -148,154 +128,206 @@ class _AuthScreenState extends State<AuthScreen> {
                           current is AuthInitial;
                     },
                     builder: (context, state) {
-                      return Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Image.asset('assets/img/GBC_logo.png', width: 130),
-                          const SizedBox(height: 12),
-
-                          AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 250),
-                            child: Text(
-                              isLogin ? 'Welcome' : 'Register',
-                              style: themeData.textTheme.headlineMedium,
-                              key: ValueKey(isLogin),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            state.isLoginMode
-                                ? 'Please Log in To Your Account'
-                                : 'create your account',
-                            style: themeData.textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 24),
-                          AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 300),
-                            transitionBuilder: (child, animation) {
-                              return FadeTransition(
-                                opacity: animation,
-                                child: SizeTransition(
-                                  sizeFactor: animation,
-                                  child: child,
-                                ),
-                              );
-                            },
-                            child: state.isLoginMode
-                                ? _LoginFields(
-                                    key: const ValueKey('login'),
-                                    emailController: emailController,
-                                    passwordController: passwordController,
-                                  )
-                                : _SignUpFields(
-                                    key: const ValueKey('signup'),
-                                    usernameController: usernameController,
-                                    emailController: emailController,
-                                    passwordController: passwordController,
-                                  ),
-                          ),
-                          const SizedBox(height: 24),
-                          ElevatedButton(
-                            onPressed: () async {
-                              BlocProvider.of<AuthBloc>(context).add(
-                                AuthButtonIsCliked(
-                                  emailController.text,
-                                  passwordController.text,
-                                  usernameController.text,
-                                ),
-                              );
-                            },
-                            child: state is AuthLoading
-                                ? CupertinoActivityIndicator(
-                                    color: const Color.fromARGB(
-                                      255,
-                                      13,
-                                      43,
-                                      141,
-                                    ),
-                                  )
-                                : Text(
-                                    state.isLoginMode ? 'Login' : 'Register',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                          ),
-                          const SizedBox(height: 12),
-                          GestureDetector(
-                            onTap: () {
-                              BlocProvider.of<AuthBloc>(
-                                context,
-                              ).add(AuthModeChageISClicked());
-                            },
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  state.isLoginMode
-                                      ? 'if you Dont Have An Account?'
-                                      : 'You Already have Account ',
-                                ),
-                                SizedBox(width: 8),
-                                Text(
-                                  state.isLoginMode ? 'Register' : 'Login',
-                                  style: TextStyle(
-                                    color: DarkThemeColors.primaryColor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(height: 12),
-                          Column(
-                            key: const ValueKey('social-login'),
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Divider(height: 1),
-                              SizedBox(height: 10),
-                              Text(
-                                state.isLoginMode
-                                    ? 'Also You Can Login with'
-                                    : 'Or sign up with',
+                      return LayoutBuilder(
+                        builder: (context, constraints) {
+                          return SingleChildScrollView(
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minHeight: constraints.maxHeight,
                               ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  IconButton(
-                                    onPressed: () {
-                                      BlocProvider.of<AuthBloc>(context).add(
-                                        const AuthOAuthButtonClicked('google'),
-                                      );
-                                    },
-                                    icon: Icon(
-                                      SimpleIcons.google,
-                                      size: 32,
-                                      color: const Color.fromARGB(
-                                        255,
-                                        192,
-                                        14,
-                                        14,
+                              child: IntrinsicHeight(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Image.asset(
+                                      'assets/img/GBC_logo.png',
+                                      width: 130,
+                                    ),
+                                    const SizedBox(height: 12),
+
+                                    AnimatedSwitcher(
+                                      duration: const Duration(
+                                        milliseconds: 250,
+                                      ),
+                                      child: Text(
+                                        isLogin ? 'Welcome' : 'Register',
+                                        style:
+                                            themeData.textTheme.headlineMedium,
+                                        key: ValueKey(isLogin),
                                       ),
                                     ),
-                                  ),
-                                  IconButton(
-                                    onPressed: () {
-                                      BlocProvider.of<AuthBloc>(context).add(
-                                        const AuthOAuthButtonClicked('discord'),
-                                      );
-                                    },
-                                    icon: Icon(
-                                      SimpleIcons.discord,
-                                      size: 32,
-                                      color: const Color(0xff5865F2),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      state.isLoginMode
+                                          ? 'Please Log in To Your Account'
+                                          : 'create your account',
+                                      style: themeData.textTheme.titleMedium,
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(height: 24),
+                                    AnimatedSwitcher(
+                                      duration: const Duration(
+                                        milliseconds: 300,
+                                      ),
+                                      transitionBuilder: (child, animation) {
+                                        return FadeTransition(
+                                          opacity: animation,
+                                          child: SizeTransition(
+                                            sizeFactor: animation,
+                                            child: child,
+                                          ),
+                                        );
+                                      },
+                                      child: state.isLoginMode
+                                          ? _LoginFields(
+                                              key: const ValueKey('login'),
+                                              emailController: emailController,
+                                              passwordController:
+                                                  passwordController,
+                                            )
+                                          : _SignUpFields(
+                                              key: const ValueKey('signup'),
+                                              usernameController:
+                                                  usernameController,
+                                              emailController: emailController,
+                                              passwordController:
+                                                  passwordController,
+                                            ),
+                                    ),
+                                    if (state.isLoginMode)
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).push(
+                                              CupertinoPageRoute(
+                                                builder: (context) =>
+                                                    const ForgotPasswordScreen(),
+                                              ),
+                                            );
+                                          },
+                                          child: const Text('Forgot password?'),
+                                        ),
+                                      ),
+                                    const SizedBox(height: 24),
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        BlocProvider.of<AuthBloc>(context).add(
+                                          AuthButtonIsCliked(
+                                            emailController.text,
+                                            passwordController.text,
+                                            usernameController.text,
+                                          ),
+                                        );
+                                      },
+                                      child: state is AuthLoading
+                                          ? CupertinoActivityIndicator(
+                                              color: colors.onPrimary,
+                                            )
+                                          : Text(
+                                              state.isLoginMode
+                                                  ? 'Login'
+                                                  : 'Register',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    GestureDetector(
+                                      onTap: () {
+                                        BlocProvider.of<AuthBloc>(
+                                          context,
+                                        ).add(AuthModeChageISClicked());
+                                      },
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            state.isLoginMode
+                                                ? 'if you Dont Have An Account?'
+                                                : 'You Already have Account ',
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text(
+                                            state.isLoginMode
+                                                ? 'Register'
+                                                : 'Login',
+                                            style: TextStyle(
+                                              color: colors.primary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    SizedBox(height: 12),
+                                    Column(
+                                      key: const ValueKey('social-login'),
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Divider(height: 1),
+                                        SizedBox(height: 10),
+                                        Text(
+                                          state.isLoginMode
+                                              ? 'Also You Can Login with'
+                                              : 'Or sign up with',
+                                        ),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            IconButton(
+                                              onPressed: () {
+                                                BlocProvider.of<AuthBloc>(
+                                                  context,
+                                                ).add(
+                                                  const AuthOAuthButtonClicked(
+                                                    'google',
+                                                  ),
+                                                );
+                                              },
+                                              // Brand icon colors stay fixed regardless
+                                              // of app theme — that's intentional, not
+                                              // a theming bug.
+                                              icon: const Icon(
+                                                SimpleIcons.google,
+                                                size: 32,
+                                                color: Color.fromARGB(
+                                                  255,
+                                                  192,
+                                                  14,
+                                                  14,
+                                                ),
+                                              ),
+                                            ),
+                                            IconButton(
+                                              onPressed: () {
+                                                BlocProvider.of<AuthBloc>(
+                                                  context,
+                                                ).add(
+                                                  const AuthOAuthButtonClicked(
+                                                    'discord',
+                                                  ),
+                                                );
+                                              },
+                                              icon: const Icon(
+                                                SimpleIcons.discord,
+                                                size: 32,
+                                                color: Color(0xff5865F2),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ],
-                          ),
-                        ],
+                            ),
+                          );
+                        },
                       );
                     },
                   ),
